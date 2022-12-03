@@ -1,0 +1,1029 @@
+---
+title: "Quarterly age and sex stratified death rates in Denmark from 2020 to 2022"
+description: "Work in progress"
+author:
+  - name: Kristoffer T. Bæk
+    orcid_id: 0000-0003-3243-3962
+date: "`r Sys.Date()`"
+output:
+  distill::distill_article:
+    toc: true
+    keep_md: true
+creative_commons: CC BY
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  dev = "png",
+  dpi = 300,
+  cache = FALSE
+  )
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(patchwork)
+
+# Typeface ----------------------------------------------------------------
+
+quartzFonts(lato = c("Lato-Regular", "Lato-Bold", "Lato-Light", "Lato-BoldItalic"))
+
+# Set gg themes ------------------------------------------------------------
+
+theme_set(c19dk::theme_covid())
+
+facet_theme <-
+  theme(
+    text = element_text(size = 7),
+    plot.margin = margin(1, 1, 0.3, 1, "cm"),
+    legend.position = "bottom",
+    legend.text = element_text(size = 7),
+    plot.title = element_text(size = 14, hjust = 0),
+    plot.subtitle = element_text(hjust = 0),
+    plot.caption = element_text(size = 10),
+    strip.text = element_text(face = "bold"),
+    axis.title.y = element_text(size = 12, margin = margin(t = 0, r = 20, b = 0, l = 0)),
+    axis.title.y.right = element_text(size = 12, margin = margin(t = 0, r = 0, b = 0, l = 20))
+  )
+```
+
+## Summary
+
+In this analysis, I calculated age and sex stratified death rates (deaths per population size) for each quarter during the Covid-19 pandemic in Denmark (2020 Q1 to, so far, 2022 Q3) and compared them to pre-pandemic death rates using two different baselines. The baselines were established by linear regression followed by adjustment for seasonality. Excess deaths were defined as deaths exceeding a prediction interval (1.96 $\times$ standard deviation using the chosen baseline period) around the season adjusted baselines. This analysis therefore takes into account both long term trends, age composition, and seasonality. With this method, I find 81 and 62 excess deaths per 100,000 (~4800 and ~3700 excess deaths, respectively) from 2020 Q1 to 2022 Q3 using the 2010-19 and 2015-19 baseline, respectively. Finally, I explore how sensitive the result is to choice of baseline (using 2008-19, 2009-19, 2010-19, 2011-19, 2012-19, 2013-19, 2014-19, 2015-19, and 2016-19 baselines) and choice of data stratification (varying age bin size and sex stratification), testing 45 combinations in total. 
+
+## Methods
+
+### Data
+
+Quarterly age-stratified [population data](https://www.statistikbanken.dk/FOLK1A) and daily age-stratified [death data](https://www.statistikbanken.dk/DODC1) were downloaded from [Danmarks Statistik](https://www.dst.dk/en/) on 23 Nov 2022. The daily death counts were summed by quarter for each stratification group. 
+
+### Death rates
+
+The death rate for a given population group in a given quarter is here defined as the number of deaths during the quarter divided by the population size at the start of the quarter.
+
+### Baselines
+
+Baselines were established in two steps. First, I used linear regression on quarterly death rates for a given baseline period (e.g. 2010-2019) to establish linear baselines. Then, season adjusted baselines were calculated using the formulas below. Basically, I calculated the mean relative deviation ($\overline {rd_Q}$) from the linear baseline for each quarter-type, $Q$ (1, 2, 3, or 4) for the baseline years ($i$), and calculated the season adjusted baseline, $baseline_{s}$, as the linear baseline value $+$ the product of $\overline {rd_Q}$ and the linear baseline value. 
+
+The 95% prediction interval $PI$ was calculated as the season adjusted baseline value +/- 1.96 $\times$ the relative standard deviation for each quarter-type $Q$ multiplied by the linear baseline value. 
+
+$$\overline {rd_Q} = \frac{1}{N}\sum_{i=1}^{N} \frac{residual_{i,Q}}{baseline_{i,Q}}$$
+$$baseline_{s \space i,Q} = baseline_{i,Q} + baseline_{i,Q} \times \overline {rd_Q} $$
+$$PI_{i,Q} = baseline_{s \space i,Q} \pm baseline_{i,Q} \times 1.96 \times {SD_Q} $$
+
+### Excess deaths
+
+Excess death rates were defined as death rates exceeding the season adjusted baseline +/- the prediction interval.
+
+
+### Main code
+
+All data manipulations and calculations were performed in R.
+
+```{r, main-functions, echo=TRUE}
+# Main functions ---------------------------------------------------------------
+make_death_rates <- function(deaths_df, pop_df, ...) {
+  #' Function that calculates death rates
+  #' @param deaths_df Data frame with death numbers
+  #' @param pop_df Data frame with population numbers
+  #' @param ... Stratification variables
+  #' @return Data frame 
+  pop_df %<>%
+    # summarize by quarter and strata
+    group_by(..., Year, Quarter) %>%
+    summarize(Population = sum(Population, na.rm = TRUE))
+
+  deaths_df %>%
+    mutate(
+      Year = as.integer(year(Date)),
+      Quarter = quarter(Date),
+      YQ = zoo::as.yearqtr(format(paste0(Year, Quarter)), "%Y%q")
+    ) %>%
+    # summarize by quarter and strata
+    group_by(..., Year, Quarter, YQ) %>%
+    summarize(Deaths = sum(Deaths, na.rm = TRUE)) %>%
+    # calculate death rates
+    right_join(pop_df, by = c(purrr::map_chr(enquos(...), rlang::as_label), "Year", "Quarter")) %>%
+    filter(YQ != "2022 Q4") %>% # excluding current incomplete quarter
+    mutate(Death_rate = Deaths / Population) %>%
+    ungroup()
+}
+
+make_base_df <- function(df, from, to, ...) {
+  #' Helper function that makes nested data frame with death rates for the baseline period
+  #' @param df Data frame with death rates
+  #' @param from Baseline period start year
+  #' @param to Baseline period end year
+  #' @param ... Stratification variables
+  #' @return Nested data frame
+  df %>%
+    select(..., Year, YQ, Quarter, Death_rate) %>%
+    filter(
+      Year >= from,
+      Year <= to
+    ) %>%
+    nest(base_data = -c(...))
+}
+
+calc_quart_stats <- function(df) {
+  #' Helper function that calculates mean, SD, and prediction intervals 
+  #' relative to baseline by quarter-type (1,2,3 or 4)
+  #' @param df Data frame with death rates and fitted baseline for baseline period
+  #' @return Data frame
+  df %>%
+    group_by(Quarter) %>%
+    summarize(
+      mean_Q = mean(.resid / .fitted),
+      sd_Q = sd(.resid / .fitted),
+      conf_lo_Q = mean_Q - 1.96 * sd_Q,
+      conf_hi_Q = mean_Q + 1.96 * sd_Q
+    )
+}
+
+calc_excess <- function(df1, df2) {
+  #' Helper function that calculates season adjusted baselines, excess deaths 
+  #' and excess death rates
+  #' @param df1 Data frame with outputs from calc_quart_stats()
+  #' @param df2 Data frame with death rates and fitted baseline for all years
+  #' @return Data frame
+  df2 %>%
+    left_join(df1, by = c("Quarter")) %>%
+    # use the relative mean deviation and sd calculated for each quarter type to
+    # calculate quarter adjusted fit and prediction interval
+    mutate(
+      fit = .fitted + mean_Q * .fitted,
+      sd = sd_Q * .fitted,
+      conf_lo = .fitted + .fitted * conf_lo_Q,
+      conf_hi = .fitted + .fitted * conf_hi_Q,
+      z = (Death_rate - fit) / sd,
+      # calculate excess death rate as death rates exceeding quarterly adjusted fit +/- pred interval
+      excess_rate = case_when(
+        Death_rate > conf_hi ~ Death_rate - conf_hi,
+        Death_rate < conf_lo ~ Death_rate - conf_lo,
+        TRUE ~ 0
+      ),
+      # calculate excess death rate as death rates exceeding either the
+      # quarterly adjusted or the linear fit
+      excess_rate_sab = Death_rate - fit,
+      excess_rate_lb = Death_rate - .fitted,
+      # calculate excess deaths as above, but multiplying the rates by population
+      excess_abs = excess_rate * Population,
+      excess_abs_sab = excess_rate_sab * Population,
+      excess_abs_lb = excess_rate_lb * Population
+    ) %>%
+    select(fit, sd, conf_lo, conf_hi, z, excess_rate, excess_rate_sab, excess_rate_lb, 
+           excess_abs, excess_abs_sab, excess_abs_lb)
+}
+
+make_prediction <- function(df, pred, from, to, ...) {
+  #' Function that calculates baselines and excess deaths
+  #' @param df Data frame with death rates
+  #' @param pred String with name for the baseline
+  #' @param from Baseline period start year
+  #' @param to Baseline period end year
+  #' @param ... Stratification variables
+  #' @return Nested data frame
+  df %>%
+    select(..., Year, YQ, Quarter, Population, Death_rate) %>%
+    mutate(prediction = pred) %>%
+    nest(all_data = -c(prediction, ...)) %>% # "all_data" is all data points from 2010-now
+    full_join(make_base_df(df, from, to, ...), by = purrr::map_chr(enquos(...), rlang::as_label)) %>%
+    mutate(
+      # linear regression (= model)
+      model = purrr::map(base_data, ~ lm(Death_rate ~ YQ, data = .x)),
+      # fit and residuals on all data
+      predict = purrr::map2(model, all_data, ~ broom::augment(.x, newdata = .y)),
+      # fit and residuals on baseline data only
+      predict_base = purrr::map2(model, base_data, ~ broom::augment(.x, newdata = .y)),
+      # quarterly SDs and means
+      qstats = purrr::map(predict_base, ~ calc_quart_stats(.x)),
+      # season adjusted baselines, CI and excess deaths
+      excess = purrr::map2(qstats, predict, ~ calc_excess(.x, .y))
+    )
+}
+```
+
+## Results
+
+### Death rates and linear baselines
+```{r import-10y-data}
+# Import data -------------------------------------------------------------
+pop_quarterly_10 <- c19dk::get_pop_by_breaks(
+  data = "../data/tidy_DST_pop.csv",
+  age_breaks = c19dk::get_age_breaks(maxage = 90, agesplit = 10)
+)
+
+deaths_10 <- read_csv2("../data/tidy_DST_daily_deaths_age_sex_10.csv")
+```
+
+```{r make-10y-sex-preds}
+# make age (10y bins) and sex stratified predictions using 2010-19 and 2015-19 as baselines
+death_rates_10 <- make_death_rates(deaths_10, pop_quarterly_10, Age, Sex)
+
+preds <- make_prediction(death_rates_10, "2010-19", 2010, 2019, Age, Sex) %>%
+  bind_rows(make_prediction(death_rates_10, "2015-19", 2015, 2019, Age, Sex))
+```
+
+
+I calculated death rates for each age and sex group using 10-year bins. The death rate is here defined as the number of deaths for a given quarter (Figure \@ref(fig:deaths-population)A and B) divided by the population size at the start of the quarter (Figure \@ref(fig:deaths-population)C). 
+
+```{r deaths-population, echo=FALSE, fig.asp=1, layout="l-page", fig.cap = "**Population size and number of deaths in each age group for the each quarter from 2010 Q1 to 2022 Q3.** (A) Deaths shown with fixed y-axis, (B) deaths shown with variable y-axes, and (C) population size."}
+p1 <- death_rates_10 %>%
+  filter(Year >= 2010) %>% 
+  ggplot() +
+  geom_line(aes(YQ, Deaths, color = Sex), size = .25) +
+  facet_grid(~Age) +
+  zoo::scale_x_yearqtr(format = "%Y", n = 1) +
+  scale_y_continuous(limits = c(0, NA)) +
+  scale_color_discrete(name = "") +
+  labs(y = "Deaths") +
+  facet_theme +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = rel(0.8)),
+    axis.title.y = element_text(size = rel(1)),
+    panel.grid.minor.x = element_line(size = 0.1),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    strip.text = element_text(size = rel(0.7))
+  )
+
+
+p2 <- death_rates_10 %>%
+  filter(Year >= 2010) %>% 
+  ggplot() +
+  geom_line(aes(YQ, Deaths, color = Sex), size = .25) +
+  facet_wrap(~Age, scales = "free_y", ncol = 10) +
+  zoo::scale_x_yearqtr(format = "%Y", n = 1) +
+  scale_y_continuous(limits = c(0, NA)) +
+  scale_color_discrete(name = "") +
+  labs(y = "Deaths") +
+  facet_theme +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = rel(0.8)),
+    axis.title.y = element_text(size = rel(1)),
+    panel.grid.minor.x = element_line(size = 0.1),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    strip.text = element_text(size = rel(0.7))
+  )
+
+p3 <- death_rates_10 %>%
+  filter(Year >= 2010) %>% 
+  ggplot() +
+  geom_line(aes(YQ, Population, color = Sex), size = .25) +
+  zoo::scale_x_yearqtr(format = "%Y", n = 1) +
+  scale_y_continuous(labels = scales::number) +
+  scale_color_discrete(name = "") +
+  facet_grid(~Age, scales = "fixed") +
+  facet_theme +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = rel(0.8)),
+    axis.title.y = element_text(size = rel(1)),
+    panel.grid.minor.x = element_line(size = 0.1),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    strip.text = element_text(size = rel(0.7))
+  )
+
+p1 / p2 / p3 + plot_annotation(tag_levels = "A") + plot_layout(guides = "collect") & theme(legend.position = "bottom")
+```
+
+In order to calculate excess deaths-rates during the Covid-19 pandemic, a baseline defining the normal death rate must be established against which the death rates during 2020-22 is compared. I used two different time periods to establish baselines, a 10-year period from 2010-2019 and 5-year period from 2015-19. To establish baselines, I used linear regressions. 
+
+Figure \@ref(fig:linear-baselines-10y-sex) shows the quarterly death rates for each group from 2010-2022 Q3. First off, note the decreasing trend in death rates for the age groups 10-89, which is particularly striking for the middle age groups (40-59). For most age groups, the 2010-19 baseline describes the death-rate trend very well. For the age group 70-79, however, it looks like the decreasing trend from 2010 to 2019 may be flattening towards the end of the period, highlighting the importance of baseline choice (as shown in Figure \@ref(fig:excess-both-bases-age-sex) the choice for this age group has a large impact). For the males in the age-groups 10-19 and 30-39, the two baselines differ greatly, which may be caused by a combination of large variation and outliers skewing the 2015-19 baselines. These groups, however, only contribute little to the overall excess death rate.
+
+
+```{r linear-baselines-10y-sex, echo=FALSE, fig.asp=1.3, layout="l-page", fig.cap = "**Death rates and baselines.** Quarterly death rates (deaths per 1000 people) for each age and sex group from 2010 to 2022 Q3 (colored lines). The black lines indicate linear regressions, defining two different baselines, based on the years 2010-19 (solid line) and 2015-19 (dashed line). The vertical gray line indicate the border between the reference period and the period of interest (2020-22)."}
+preds %>%
+  unnest(predict) %>%
+  filter(
+    Year >= 2010, 
+    !(prediction == "2015-19" & Year < 2015)
+    ) %>%
+  ggplot() +
+  geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70") +
+  geom_line(data = function(x) subset(x, prediction == "2010-19"), aes(YQ, Death_rate * 1000, color = Sex), size = .3) +
+  geom_point(data = function(x) subset(x, prediction == "2010-19"), aes(YQ, Death_rate * 1000, color = Sex), stroke = 0, size = 1) +
+  geom_line(aes(YQ, .fitted * 1000, group = interaction(Sex, prediction), linetype = prediction), size = .6) +
+  zoo::scale_x_yearqtr(format = "%YQ%q", n = 5) +
+  scale_y_continuous(limits = c(0, NA)) +
+  scale_linetype_discrete(labels = c("Baseline 2010-19", "Baseline 2015-19")) +
+  labs(
+    y = "Deaths per 1000"
+  ) +
+  facet_theme +
+  facet_wrap(~Age, ncol = 2, scales = "free_y") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = rel(0.8)),
+    axis.title.y = element_text(size = rel(1)),
+    panel.grid.minor.x = element_line(size = 0.1),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8),
+    panel.spacing = unit(0.3, "cm")
+  )
+```
+
+### Taking seasonality into account
+
+Deaths in Denmark follow a seasonal pattern, which is primarily caused by seasonality in the death rates among the older age-groups (which contributes the majority of deaths in the total population), whereas deaths among the younger age groups do not exhibit significant seasonality (Figure \@ref(fig:seasonality-10y-sex)). 
+
+```{r seasonality-10y-sex, echo=FALSE, fig.asp=0.6, layout="l-page", fig.cap = "**Seasonal deviation from linear baselines (using the 2010-19 reference period).** The colored lines show the relative (%) deviation from the linear baseline for each year from 2010-19. Black dots indicate the mean relative deviation for each quarter and vertical lines indicate the standard deviation of the relative deviations. The gray bands indicate the derived prediction intervals."}
+
+preds %>%
+  unnest(predict) %>%
+  filter(
+    prediction == "2010-19",
+    Year >= 2010,
+    Year <= 2019
+  ) %>%
+  left_join(unnest(preds, qstats), by = c("Age", "Sex", "Quarter", "prediction")) %>%
+  ggplot() +
+  geom_ribbon(aes(x = Quarter, ymin = conf_lo_Q * 100, ymax = conf_hi_Q * 100), fill = "gray70", alpha = 0.4) +
+  geom_line(aes(Quarter, .resid / .fitted * 100, group = Year, color = Sex), size = 0.15) +
+  geom_pointrange(aes(x = Quarter, y = mean_Q * 100, ymin = 100 * (mean_Q - sd_Q), ymax = 100 * (mean_Q + sd_Q)), size = 0.07) +
+  
+  scale_y_continuous(limits = c(NA, NA), labels = function(x) paste0(x, " %")) +
+  labs(
+    y = "Deviation from baseline (%)",
+    x = "Quarter"
+  ) +
+  scale_color_discrete(name = "") +
+  facet_theme +
+  facet_grid(Sex ~ Age, scales = "fixed") +
+  theme(
+    axis.title.y = element_text(size = rel(1)),
+    axis.title.x = element_text(size = rel(1)),
+    panel.grid.minor.x = element_blank(),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    legend.text = element_text(size = 8),
+    panel.spacing.y = unit(0.5, "cm")
+  )
+```
+
+To better interpret how much the death rates during the pandemic deviate from the baselines, I established season adjusted baselines and a 95% prediction interval (calculated as 1.96 $\times$ standard deviation) based on the quarter-specific variation shown in Figure \@ref(fig:seasonality-10y-sex). The prediction interval thus reflects the expected variation around the season adjusted baseline based on the observed pre-pandemic variation. Note, that it is here assumed that the expected seasonal variation is proportional to the linear baseline value within each stratification group (the 40-49yo age group in Figure \@ref(fig:sab-10y-sex-norm) exemplifies this). Figures \@ref(fig:sab-10y-sex-base1) and \@ref(fig:sab-10y-sex-base2) show the death rates for each age and sex group together with the season adjusted baselines.
+
+```{r sab-10y-sex-base1, echo=FALSE, fig.asp=1.3, layout="l-page", fig.cap = "**Quarterly death rates and season adjusted baselines using  2010-19 as reference period.** Colored lines indicate the quarterly death rates, black lines indicate the season adjusted baselines, and the gray band indicate the 95% prediction interval. Sex is indicated on top, age on the right."}
+
+gglayer_1 <- list(
+  scale_y_continuous(limits = c(NA, NA)),
+  zoo::scale_x_yearqtr(format = "%YQ%q", n = 5, expand = expansion(mult = c(0.025, .025))),
+  labs(y = "Deaths per 1000"),
+  scale_color_discrete(guide = "none"),
+  facet_theme,
+  facet_grid(Age ~ Sex, scales = "free_y"),
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = rel(0.8)),
+    axis.title.y = element_text(size = rel(1)),
+    panel.grid.minor.x = element_line(size = 0.1),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8)
+  )
+)
+
+preds %>%
+  unnest(c(predict, excess)) %>%
+  filter(prediction == "2010-19", Year >= 2010) %>%
+  ggplot() +
+  geom_ribbon(aes(YQ, ymin = conf_lo * 1000, ymax = conf_hi * 1000), fill = "gray70", alpha = 0.4) +
+  geom_line(aes(YQ, fit * 1000), size = .3) +
+  geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70") +
+  geom_line(aes(YQ, Death_rate * 1000, color = Sex), size = .3) +
+  gglayer_1 +
+  theme(panel.spacing.y = unit(0.7, "cm"))
+```
+
+
+```{r sab-10y-sex-base2, echo=FALSE, fig.asp=1.3, layout="l-page", fig.cap = "**Quarterly death rates and season adjusted baselines using  2015-19 as reference period.** Colored lines indicate the quarterly death rates, black lines indicate the season adjusted baselines, and the gray band indicate the 95% prediction interval. Sex is indicated on top, age on the right."}
+
+preds %>%
+  unnest(c(predict, excess)) %>%
+  filter(prediction == "2015-19", Year >= 2015) %>%
+  ggplot() +
+  geom_ribbon(aes(YQ, ymin = conf_lo * 1000, ymax = conf_hi * 1000), fill = "gray70", alpha = 0.4) +
+  geom_line(aes(YQ, fit * 1000), size = .3) +
+  geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70") +
+  geom_line(aes(YQ, Death_rate * 1000, color = Sex), size = .3) +
+  gglayer_1 +
+  theme(panel.spacing.y = unit(0.7, "cm"))
+```
+
+In the following figures (Figure \@ref(fig:sab-10y-sex-norm) and \@ref(fig:sab-10y-sex-norm-covid)), I show the difference between the observed death rates and the expected season adjusted death rates ($\Delta$death rates), effectively de-trending and de-seasonalizing the death rates and baselines.
+
+```{r sab-10y-sex-norm, echo=FALSE, fig.asp=1.3, layout="l-page", fig.cap = "**De-trended/de-seasonalized quarterly death rates and  baselines.** (A) Baseline reference period 2010-19, and (B) baseline reference period 2015-19. Colored lines indicate the quarterly death rates, black lines indicate the baselines, and the gray bands indicate the 95% prediction intervals. Sex is indicted on top, age on the right."}
+
+p1 <- preds %>%
+  unnest(c(predict, excess)) %>%
+  filter(prediction == "2010-19", Year >= 2010) %>%
+  ggplot() +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000), fill = "gray70", alpha = 0.4) +
+  geom_line(aes(YQ, (fit  - fit) * 1000), size = .3) +
+  geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70") +
+  geom_line(aes(YQ, (Death_rate - fit) * 1000, color = Sex), size = .3) +
+  gglayer_1 +
+  scale_y_continuous(limits = c(NA, NA)) +
+  labs(y = expression(bold(Delta*"death rate (per 1000)"))) +
+  theme(
+    panel.spacing.y = unit(0.7, "cm"),
+    plot.margin = margin(0.7, 0.2, 0.3, 0.7, "cm"))
+
+p2 <- preds %>%
+  unnest(c(predict, excess)) %>%
+  filter(prediction == "2015-19", Year >= 2015) %>%
+  ggplot() +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000), fill = "gray70", alpha = 0.4) +
+  geom_line(aes(YQ, (fit  - fit) * 1000), size = .3) +
+  geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70") +
+  geom_line(aes(YQ, (Death_rate - fit) * 1000, color = Sex), size = .3) +
+  gglayer_1 +
+  scale_y_continuous(limits = c(NA, NA)) +
+  theme(
+    panel.spacing.y = unit(0.7, "cm"), 
+    axis.title.y = element_blank(),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.2, "cm"))
+
+p1 + p2 + plot_annotation(tag_levels = "A") & theme(legend.position = "none")
+```
+
+
+
+```{r sab-10y-sex-norm-covid, echo=FALSE, fig.asp=0.8, layout="l-page", fig.cap = "**De-trended/de-seasonalized quarterly death rates and  baselines for 2020-2022.** (A) Baseline reference period 2010-19, and (B) baseline reference period 2015-19. Colored lines indicate the quarterly death rates for males (blue lines) and females (red lines), black lines indicate the baselines, and the transparent colored bands indicate the 95% prediction intervals for males (blue) and females (red). Sex is indicted on top, age on the right."}
+
+p1 <- preds %>%
+  unnest(c(predict, excess)) %>%
+  filter(prediction == "2010-19", Year >= 2020) %>%
+  ggplot() +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.2) +
+  geom_line(aes(YQ, (fit  - fit) * 1000), size = .3) +
+  geom_line(aes(YQ, (Death_rate - fit) * 1000, color = Sex), size = .5) +
+  gglayer_1 +
+  scale_y_continuous(limits = c(NA, NA)) +
+  facet_wrap(~ Age, ncol = 5, scales = "free_y") +
+  labs(y = expression(bold(Delta*"death rate (per 1000)")))
+
+p2 <- preds %>%
+  unnest(c(predict, excess)) %>%
+  filter(prediction == "2015-19", Year >= 2020) %>%
+  ggplot() +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.2) +
+  geom_line(aes(YQ, (fit  - fit) * 1000), size = .3) +
+  geom_line(aes(YQ, (Death_rate - fit) * 1000, color = Sex), size = .5) +
+  gglayer_1 +
+  scale_y_continuous(limits = c(NA, NA)) +
+  facet_wrap(~ Age, ncol = 5, scales = "free_y") +
+  labs(y = expression(bold(Delta*"death rate (per 1000)"))) +
+  theme(plot.margin = margin(0.3, 0.7, 0.3, 0.7, "cm"))
+
+ p1 / p2 + plot_annotation(tag_levels = "A") & theme(legend.position = "none")
+```
+
+
+
+
+
+
+
+### Summarizing excess deaths
+
+Here, I define excess deaths as deaths that exceed the season adjusted baseline +/- the prediction interval (thus excess deaths can be both a positive and negative number) for a given  group in a given quarter. It should be kept in mind that the excess death rates resulting from this method depends strongly on, among other things, how the prediction interval is defined (here they are based directly on the observed variation in the baseline period for each quarter-type). Excess deaths are back-calculated from the excess death rates using the age and sex stratified quarterly population numbers. 
+
+Figure \@ref(fig:excess-both-bases-quarter-age) and Table \@ref(tab:excess-table) shows quarterly excess deaths stratified on age,  Figure \@ref(fig:excess-both-bases-quarter-sex) shows quarterly excess deaths stratified on sex, Figure \@ref(fig:excess-both-bases-age-sex) shows excess deaths for the whole period per age group, and Figure  \@ref(fig:excessrate-both-bases-year) shows excess deaths per 100,000 of the entire population per year.
+
+
+```{r calc-pop-total}
+pop_total <- preds %>%
+  unnest(predict) %>%
+  filter(prediction == "2010-19") %>%
+  group_by(YQ) %>%
+  summarize(Pop_total = sum(Population))
+```
+
+```{r excess-both-bases-quarter-age, echo=FALSE, fig.asp=0.6, layout="l-body-outset", fig.cap = "**Excess deaths by age and quarter.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter. Age groups 0-19 are ommitted."}
+
+colors <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+pred_names <- c(
+  "2010-19" = "Baseline 2010-19",
+  "2015-19" = "Baseline 2015-19"
+)
+
+preds %>%
+  unnest(c(predict, excess)) %>%
+  filter(Year >= 2020, !Age %in% c("0-9", "10-19")) %>%
+  group_by(YQ, Age, prediction) %>% 
+  summarize(excess_abs = sum(excess_abs)) %>% 
+  ggplot() +
+  geom_bar(stat = "identity", position = "stack", aes(YQ, excess_abs, fill = Age, color = Age), size = 0.1, width = 0.2) +
+  scale_y_continuous(limits = c(NA, NA), labels = scales::number) +
+  labs(
+    y = "Excess deaths"
+  ) +
+  zoo::scale_x_yearqtr(format = "%Y Q%q", n = 9) +
+  facet_wrap(~prediction, labeller = labeller(prediction = pred_names)) +
+  scale_fill_manual(values = colors) +
+  scale_color_manual(values = colors) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = rel(1.1)),
+    axis.text.y = element_text(size = rel(1.1)),
+    axis.title.y = element_text(size = rel(1)),
+    panel.grid.minor.x = element_blank(),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8)
+  )
+```
+
+```{r, excess-table, layout = "l-page"}
+preds %>%
+  unnest(c(predict, excess)) %>%
+  filter(Year >= 2020) %>%
+  group_by(Age, Sex, prediction) %>%
+  summarize(excess_deaths = round(sum(excess_abs), 0)) %>%
+  mutate(prediction = ifelse(prediction == "2010-19", "Base 2010-19", "Base 2015-19")) %>%
+  pivot_wider(names_from = c(prediction, Sex), values_from = excess_deaths, names_sep = ": ") %>%
+  select(Age, `Base 2010-19: Female`, `Base 2010-19: Male`, everything()) %>%
+  ungroup() %>%
+  add_row(Age = "All", summarise(., across(where(is.numeric), sum))) %>%
+  knitr::kable(caption = "Excess deaths for each age group, sex and baseline for the period 2020 Q1 - 2022 Q3. Rounded to whole numbers.")
+```
+
+```{r excess-both-bases-quarter-sex, echo=FALSE, fig.asp=0.55, layout="l-body-outset", fig.cap = "**Excess deaths by sex and quarter.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter."}
+
+
+preds %>%
+  unnest(c(predict, excess)) %>%
+  filter(Year >= 2020) %>%
+  group_by(YQ, Sex, prediction) %>% 
+  summarize(excess_abs = sum(excess_abs)) %>% 
+  ggplot() +
+  geom_bar(stat = "identity", position = "stack", aes(YQ, excess_abs, fill = Sex, color = Sex), size = 0.1, width = 0.2) +
+  scale_y_continuous(limits = c(NA, NA), labels = scales::number) +
+  labs(
+    y = "Excess deaths"
+  ) +
+  zoo::scale_x_yearqtr(format = "%Y Q%q", n = 9) +
+  facet_wrap(~prediction, labeller = labeller(prediction = pred_names)) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = rel(1.1)),
+    axis.text.y = element_text(size = rel(1.1)),
+    axis.title.y = element_text(size = rel(1)),
+    panel.grid.minor.x = element_blank(),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8)
+  )
+```
+
+```{r excess-both-bases-age-sex, echo=FALSE, fig.asp=0.55, layout="l-body-outset", fig.cap = "**Excess deaths by sex and age.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter. Total excess deaths over the period 2020 Q1 - 2022 Q3 are summed. "}
+preds %>%
+  unnest(c(predict, excess)) %>%
+  filter(Year >= 2020) %>%
+  ggplot() +
+  geom_bar(stat = "identity", aes(Age, excess_abs, fill = Sex, color = Sex), size = 0.1, width = 0.6) +
+  scale_y_continuous(limits = c(NA, NA)) +
+  labs(
+    y = "Excess deaths"
+  ) +
+  facet_wrap(~prediction, labeller = labeller(prediction = pred_names)) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = rel(1.1)),
+    axis.text.y = element_text(size = rel(1.1)),
+    axis.title.y = element_text(size = rel(1)),
+    panel.grid.minor.x = element_blank(),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8)
+  )
+```
+
+
+
+```{r excessrate-both-bases-year, echo=FALSE, fig.asp=0.5, fig.cap = "**Excess deaths per 100,000 of the total Danish population per year.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval for a given stratification in a given quarter. *) 2022 is calculated based on Q1, Q2, and Q3 only. The population for each year is taken as the mean of the population at the start of each quarter."}
+preds %>%
+  unnest(c(predict, excess)) %>%
+  left_join(pop_total, by = "YQ") %>%
+  filter(Year >= 2020) %>%
+  group_by(Year, prediction) %>%
+  summarize(
+    excess_deaths = sum(excess_abs),
+    Pop_total = mean(Pop_total, na.rm = TRUE)
+  ) %>%
+  mutate(Year = ifelse(Year == 2022, "2022*", as.character(Year))) %>%
+  ggplot() +
+  geom_bar(stat = "identity", position = "stack", aes(Year, excess_deaths / Pop_total * 100000), width = 0.9) +
+  scale_y_continuous(limits = c(NA, NA), labels = scales::number) +
+  scale_x_discrete(breaks = c("2020", "2021", "2022*")) +
+  labs(
+    y = "Excess deaths per 100,000"
+  ) +
+  facet_wrap(~prediction, labeller = labeller(prediction = pred_names)) +
+  theme(
+    axis.text.x = element_text(size = rel(1.1)),
+    axis.text.y = element_text(size = rel(1.1)),
+    strip.text.x = element_text(size = rel(1.1)),
+    axis.title.y = element_text(size = rel(1.2)),
+    panel.grid.minor.x = element_blank(),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8)
+  )
+```
+
+### Sensitivity to baseline
+
+To explore the sensitivity to choice of baseline, I have calculated the total excess death rate for seven different baselines (Figure \@ref(fig:excessrate-more-bases-10y-sex)).
+
+```{r calc-more-baselines-10y-sex}
+# make more predictions
+preds_more <- 
+  make_prediction(death_rates_10, "2008-19", 2008, 2019, Age, Sex) %>%
+  bind_rows(make_prediction(death_rates_10, "2009-19", 2009, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2010-19", 2010, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2011-19", 2011, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2012-19", 2012, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2013-19", 2013, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2014-19", 2014, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2015-19", 2015, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2016-19", 2016, 2019, Age, Sex)) 
+```
+
+```{r excessrate-more-bases-10y-sex, echo=FALSE, layout = "l-body_outset", fig.asp=1.1, fig.cap = "**Excess deaths for the period 2020 Q1 - 2022 Q3 depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter. Baseline period is indicated on the x-axis. (A) Excess deaths per 100,000 of the total Danish population, and (B) excess deaths stratified by age."}
+p1 <- preds_more %>%
+  unnest(c(predict, excess)) %>%
+  left_join(pop_total, by = "YQ") %>%
+  filter(Year >= 2020) %>%
+  group_by(prediction) %>%
+  summarize(
+    excess_deaths = sum(excess_abs),
+    Pop_total = mean(Pop_total, na.rm = TRUE)
+  ) %>%
+  ggplot() +
+  geom_bar(stat = "identity", position = "stack", aes(prediction, excess_deaths / Pop_total * 100000), width = 0.9) +
+  scale_y_continuous(limits = c(NA, NA), labels = scales::number) +
+  labs(
+    y = "Excess deaths per 100,000",
+    x = "Baseline reference period"
+  ) +
+  theme(
+    axis.text.x = element_text(size = rel(0.9)),
+    axis.text.y = element_text(size = rel(1.1)),
+    axis.title.y = element_text(size = rel(1)),
+    axis.title.x = element_text(face = "bold", size = rel(1)),
+    panel.grid.minor.x = element_blank(),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8)
+  )
+
+p2 <- preds_more %>%
+  unnest(c(predict, excess)) %>%
+  filter(Year >= 2020, !Age %in% c("0-9", "10-19")) %>%
+  group_by(Age, prediction) %>%
+  summarize(excess_deaths = sum(excess_abs)) %>%
+  ggplot() +
+  geom_bar(stat = "identity", position = "stack", aes(prediction, excess_deaths, fill = Age, color = Age), size = 0.1, width = 0.9) +
+  scale_y_continuous(limits = c(NA, NA), labels = scales::number) +
+  labs(
+    y = "Excess deaths",
+    x = "Baseline reference period"
+  ) +
+  scale_fill_manual(values = colors) +
+  scale_color_manual(values = colors) +
+  theme(
+    axis.text.x = element_text(size = rel(0.9)),
+    axis.text.y = element_text(size = rel(1.1)),
+    axis.title.y = element_text(size = rel(1)),
+    axis.title.x = element_text(face = "bold", size = rel(1)),
+    panel.grid.minor.x = element_blank(),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8)
+  )
+
+ p1 / p2 + plot_annotation(tag_levels = "A")
+```
+
+
+
+```{r sab-10y-old-more-base, echo=FALSE, fig.asp=0.4, layout="l-screen", fig.cap = "**De-trended/de-seasonalized death rates and baselines for older age groups using different baseline reference periods.** Colored lines indicate the quarterly death rates for males (blue lines) and females (red lines), black lines indicate the baselines, and the transparent colored bands indicate the 95% prediction intervals for males (blue) and females (red), and the vertical gray line indicates the border between reference period and pandemic period. Age group is indicated on the right. "}
+
+
+preds_more %>%
+  unnest(c(predict, excess)) %>%
+  filter(Age %in% c("70-79", "80-89")) %>% 
+  mutate(
+    base_start = as.numeric(str_sub(prediction, 1, 4)),
+    fit = ifelse(Year < base_start, NA, fit),
+    conf_lo = ifelse(Year < base_start, NA, conf_lo),
+    conf_hi = ifelse(Year < base_start, NA, conf_hi)
+    ) %>% 
+  ggplot() +
+  geom_line(aes(YQ, (fit  - fit) * 1000), size = .15) +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.2) +
+  geom_vline(xintercept = 2019.88, size = 0.2, color = "gray70") +
+  geom_line(aes(YQ, excess_rate_sab * 1000, color = Sex), size = .25) +
+  scale_y_continuous(limits = c(NA, NA)) +
+  zoo::scale_x_yearqtr(format = "%YQ%q", n = 3) +
+  labs(y = "Deaths per 1000") +
+  scale_color_discrete(guide = "none") +
+  scale_fill_discrete(guide = "none") +
+  facet_theme +
+  facet_grid(Age ~ prediction, scales = "free_y") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = rel(0.7)),
+    axis.title.y = element_text(size = rel(1)),
+    panel.grid.minor.x = element_line(size = 0.1),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8)
+  )
+```
+
+### Sensitivity to stratification
+
+
+
+```{r calc-deaths-pop-5y}
+# Import data -------------------------------------------------------------
+pop_quarterly_5 <- c19dk::get_pop_by_breaks(
+  data = "../data/tidy_DST_pop.csv",
+  age_breaks = c19dk::get_age_breaks(maxage = 95, agesplit = 5)
+)
+
+deaths_5 <- read_csv2("../data/tidy_DST_daily_deaths_age_sex_5.csv") %>% 
+  # grouping 95+ into one group
+  mutate(Age = case_when(
+    Age == "95-99" ~ "95+",
+    Age == "100+" ~ "95+",
+    TRUE ~ Age
+  )) %>% 
+  group_by(Date, Age, Sex) %>% 
+  summarize(Deaths = sum(Deaths))
+```
+
+```{r calc-more-bases-5y-sex}
+# make age and sex stratified predictions using 2010-19 and 2015-19 as baselines
+death_rates_5 <- make_death_rates(deaths_5, pop_quarterly_5, Age, Sex) 
+  
+death_rates_5$Age <- factor(death_rates_5$Age, levels = c(
+  "0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39",
+  "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79",
+  "80-84", "85-89", "90-94", "95+"
+))
+
+preds_5 <- 
+  make_prediction(death_rates_5, "2008-19", 2008, 2019, Age, Sex) %>% 
+  bind_rows(make_prediction(death_rates_5, "2009-19", 2009, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2010-19", 2010, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2011-19", 2011, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2012-19", 2012, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2013-19", 2013, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2014-19", 2014, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2015-19", 2015, 2019, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2016-19", 2016, 2019, Age, Sex))
+```
+
+```{r sab-5y-sex-base2-norm, echo=FALSE, fig.asp=2.5, layout="l-page", fig.cap = "**De-trended/de-seasonalized quarterly death rates and  baselines using 5-year age brackets.** (A) Baseline reference period 2010-19, and (B) baseline reference period 2015-19. Colored lines indicate the quarterly death rates, black lines indicate the baselines, and the gray bands indicate the 95% prediction intervals. Sex is indicted on top, age on the right."}
+
+p1 <- preds_5 %>%
+  unnest(c(predict, excess)) %>%
+  filter(prediction == "2010-19", Year >= 2010) %>%
+  ggplot() +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000), fill = "gray70", alpha = 0.4) +
+  geom_line(aes(YQ, (fit  - fit) * 1000), size = .3) +
+  geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70") +
+  geom_line(aes(YQ, (Death_rate - fit) * 1000, color = Sex), size = .3) +
+  gglayer_1 +
+  scale_y_continuous(limits = c(NA, NA)) +
+  labs(y = expression(bold(Delta*"death rate (per 1000)"))) +
+  theme(
+    panel.spacing.y = unit(0.7, "cm"),
+    plot.margin = margin(0.7, 0.2, 0.3, 0.7, "cm"))
+
+p2 <- preds_5 %>%
+  unnest(c(predict, excess)) %>%
+  filter(prediction == "2015-19", Year >= 2015) %>%
+  ggplot() +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000), fill = "gray70", alpha = 0.4) +
+  geom_line(aes(YQ, (fit  - fit) * 1000), size = .3) +
+  geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70") +
+  geom_line(aes(YQ, (Death_rate - fit) * 1000, color = Sex), size = .3) +
+  gglayer_1 +
+  scale_y_continuous(limits = c(NA, NA)) +
+  theme(
+    panel.spacing.y = unit(0.7, "cm"), 
+    axis.title.y = element_blank(),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.2, "cm"))
+
+p1 + p2 + plot_annotation(tag_levels = "A") & theme(legend.position = "none")
+```
+
+
+```{r sab-5y-sex-base2-norm-covid, echo=FALSE, fig.asp=1.2, layout="l-page", fig.cap = "**De-trended/de-seasonalized quarterly death rates and  baselines for 2020-2022 using 5-year age brackets.** (A) Baseline reference period 2010-19, and (B) baseline reference period 2015-19. Colored lines indicate the quarterly death rates for males (blue lines) and females (red lines), black lines indicate the baselines, and the transparent colored bands indicate the 95% prediction intervals for males (blue) and females (red). Sex is indicted on top, age on the right."}
+
+p1 <- preds_5 %>%
+  unnest(c(predict, excess)) %>%
+  filter(prediction == "2010-19", Year >= 2020) %>%
+  ggplot() +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.2) +
+  geom_line(aes(YQ, (fit  - fit) * 1000), size = .3) +
+  geom_line(aes(YQ, (Death_rate - fit) * 1000, color = Sex), size = .5) +
+  gglayer_1 +
+  scale_y_continuous(limits = c(NA, NA)) +
+  facet_wrap(~ Age, ncol = 5, scales = "free_y") +
+  labs(y = expression(bold(Delta*"death rate (per 1000)")))
+
+p2 <- preds_5 %>%
+  unnest(c(predict, excess)) %>%
+  filter(prediction == "2015-19", Year >= 2020) %>%
+  ggplot() +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.2) +
+  geom_line(aes(YQ, (fit  - fit) * 1000), size = .3) +
+  geom_line(aes(YQ, (Death_rate - fit) * 1000, color = Sex), size = .5) +
+  gglayer_1 +
+  scale_y_continuous(limits = c(NA, NA)) +
+  facet_wrap(~ Age, ncol = 5, scales = "free_y") +
+  labs(y = expression(bold(Delta*"death rate (per 1000)"))) +
+  theme(plot.margin = margin(0.3, 0.7, 0.3, 0.7, "cm"))
+
+ p1 / p2 + plot_annotation(tag_levels = "A") & theme(legend.position = "none")
+```
+
+```{r}
+colors_16 <- c(colorspace::lighten("#999999", 0.4), "#999999", 
+            colorspace::lighten("#E69F00", 0.4), "#E69F00", 
+            colorspace::lighten("#56B4E9", 0.4), "#56B4E9", 
+            colorspace::lighten("#009E73", 0.4), "#009E73",
+            colorspace::lighten("#F0E442", 0.6), "#F0E442",
+            colorspace::lighten("#0072B2", 0.4), "#0072B2",
+            colorspace::lighten("#D55E00", 0.4), "#D55E00", 
+            colorspace::lighten("#CC79A7", 0.4), "#CC79A7")
+
+preds_5 %>%
+  unnest(c(predict, excess)) %>%
+  filter(Year >= 2020, !Age %in% c("0-4", "5-9", "10-14", "15-19")) %>%
+  group_by(Age, prediction) %>%
+  summarize(excess_deaths = sum(excess_abs)) %>% 
+  ggplot() +
+  geom_bar(stat = "identity", position = "stack", aes(prediction, excess_deaths, fill = Age, color = Age), size = 0.1, width = 0.9) +
+  scale_y_continuous(limits = c(NA, NA), labels = scales::number) +
+  labs(
+    y = "Excess deaths",
+    x = "Baseline"
+  ) +
+  scale_fill_manual(values = colors_16) +
+  scale_color_manual(values = colors_16) +
+  theme(
+    axis.text.x = element_text(size = rel(0.9)),
+    axis.text.y = element_text(size = rel(1.1)),
+    axis.title.y = element_text(size = rel(1.2)),
+    axis.title.x = element_text(face = "bold", size = rel(1)),
+    panel.grid.minor.x = element_blank(),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8)
+  )
+
+```
+
+```{r calc-more-baselines-no-strata}
+# make predictions on non-stratified data
+death_rates_ns <- make_death_rates(deaths_10, pop_quarterly_10)
+
+preds_no_strata <- 
+  make_prediction(death_rates_ns, "2008-19", 2008, 2019) %>%
+  bind_rows(make_prediction(death_rates_ns, "2009-19", 2009, 2019)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2010-19", 2010, 2019)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2011-19", 2011, 2019)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2012-19", 2012, 2019)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2013-19", 2013, 2019)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2014-19", 2014, 2019)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2015-19", 2015, 2019)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2016-19", 2016, 2019)) 
+```
+
+
+```{r calc-more-bases-ages-no-sex}
+# make age stratified predictions
+death_rates_5a <- make_death_rates(deaths_5, pop_quarterly_5, Age)
+death_rates_10a <- make_death_rates(deaths_10, pop_quarterly_10, Age)
+
+# to display the age groups in the correct order in plots
+death_rates_5a$Age <- factor(death_rates_5a$Age, levels = c(
+  "0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39",
+  "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79",
+  "80-84", "85-89", "90-94", "95-99", "100+"
+))
+
+preds_5_no_sex <- 
+  make_prediction(death_rates_5a, "2008-19", 2008, 2019, Age) %>% 
+  bind_rows(make_prediction(death_rates_5a, "2009-19", 2009, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2010-19", 2010, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2011-19", 2011, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2012-19", 2012, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2013-19", 2013, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2014-19", 2014, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2015-19", 2015, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2016-19", 2016, 2019, Age))
+
+preds_10_no_sex <- 
+  make_prediction(death_rates_10a, "2008-19", 2008, 2019, Age) %>% 
+  bind_rows(make_prediction(death_rates_10a, "2009-19", 2009, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2010-19", 2010, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2011-19", 2011, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2012-19", 2012, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2013-19", 2013, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2014-19", 2014, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2015-19", 2015, 2019, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2016-19", 2016, 2019, Age))
+```
+
+```{r collect-all-predictions, echo=FALSE}
+excess_whole_pop <- function(df,  ...) {
+  # helper function
+  df %>% 
+   unnest(c(predict, excess)) %>%
+  left_join(pop_total, by = "YQ") %>%
+  filter(Year >= 2020) %>%
+  group_by(..., prediction) %>%
+  summarize(
+    excess_abs = sum(excess_abs),
+    excess_abs_sab = sum(excess_abs_sab),
+    excess_abs_lb = sum(excess_abs_lb),
+    Pop_total = mean(Pop_total, na.rm = TRUE)
+  ) 
+}
+
+
+preds_strata_10 <- preds_more %>%
+  excess_whole_pop() %>%  
+  mutate(stratification = "Age (10y) & Sex")
+
+preds_strata_5 <- preds_5 %>%
+  excess_whole_pop() %>% 
+  mutate(stratification = "Age (5y) & Sex")
+
+preds_strata_10_ns <- preds_10_no_sex %>%
+  excess_whole_pop() %>% 
+  mutate(stratification = "Age (10y)")
+
+preds_strata_5_ns <- preds_5_no_sex %>%
+  excess_whole_pop() %>% 
+  mutate(stratification = "Age (5y)")
+
+all_preds <- preds_no_strata %>%
+  excess_whole_pop() %>% 
+  mutate(stratification = "Non-stratified") %>% 
+  bind_rows(
+    preds_strata_10,
+    preds_strata_10_ns,
+    preds_strata_5,
+    preds_strata_5_ns
+    )
+```
+
+```{r excessrate-all-preds, echo=FALSE,  layout = "l-body_outset", fig.asp=0.5, fig.cap = "**Excess deaths per 100,000 of the total Danish population for the period 2020 Q1 - 2022 Q3 for stratified and non-stratified data depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction in a given quarter. Baseline reference period is indicated on the x-axis."}
+all_preds %>% 
+  ggplot() +
+  geom_bar(stat = "identity", position = "dodge", aes(prediction, excess_abs / Pop_total * 100000, fill = stratification), width = 0.9) +
+  scale_y_continuous(limits = c(NA, NA), labels = scales::number) +
+  labs(
+    y = "Excess deaths per 100,000",
+    x = "Baseline reference period"
+  ) +
+  theme(
+    axis.text.x = element_text(size = rel(1)),
+    axis.text.y = element_text(size = rel(1.1)),
+    axis.title.y = element_text(size = rel(1.2)),
+    axis.title.x = element_text(face = "bold", size = rel(1)),
+    panel.grid.minor.x = element_blank(),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 10)
+  )
+```
+
+
+
+
+
+
+```{r excessrate-mean-all-preds,  fig.asp=0.5,  echo=FALSE, layout="l-body_outset"}
+all_preds %>%
+  ggplot() +
+  geom_bar(stat = "identity", position = "dodge", aes(prediction, excess_abs_sab / Pop_total * 100000, fill = stratification), width = 0.9) +
+  scale_y_continuous(limits = c(NA, NA), labels = scales::number) +
+  labs(
+    y = "Deaths over baseline mean per 100,000",
+    x = "Baseline reference period"
+  ) +
+  theme(
+    axis.text.x = element_text(size = rel(1)),
+    axis.text.y = element_text(size = rel(1.1)),
+    axis.title.y = element_text(size = rel(1)),
+    axis.title.x = element_text(face = "bold", size = rel(1)),
+    panel.grid.minor.x = element_blank(),
+    plot.margin = margin(0.7, 0.7, 0.3, 0.7, "cm"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 10)
+  )
+```
+
