@@ -3,18 +3,17 @@ title: "Quarterly age and sex stratified death rates in Denmark from 2020 to 202
 description: "Work in progress"
 author:
   - name: Kristoffer T. Bæk
-    orcid_id: 0000-0003-3243-3962
 date: "`r Sys.Date()`"
 output:
-  distill::distill_article:
+  rmarkdown::github_document:
     toc: true
-    keep_md: true
-creative_commons: CC BY
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
   dev = "png",
   dpi = 300,
   cache = FALSE
