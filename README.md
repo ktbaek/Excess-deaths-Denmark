@@ -15,7 +15,7 @@ baselines. This analysis therefore takes into account both long term
 trends, age composition, and seasonality. With this method, I find 81
 and 62 excess deaths per 100,000 (\~4800 and \~3700 excess deaths,
 respectively) from 2020 Q1 to 2022 Q3 using the 2010-2019 and 2015-2019
-baseline, respectively. Finally, I explore how sensitive the result is
+baseline, respectively. Finally, I explored how sensitive the result is
 to choice of baseline (using 2008-19, 2009-19, 2010-19, 2011-19,
 2012-19, 2013-19, 2014-19, 2015-19, and 2016-19 as reference periods)
 and choice of data stratification (varying age bin size and sex

@@ -61,7 +61,7 @@ colors_16 <- c(colorspace::lighten("#999999", 0.4), "#999999",
 
 ## Summary
 
-In this analysis, I calculated age and sex stratified death rates (deaths per population size) for each quarter during the Covid-19 pandemic in Denmark (2020 Q1 to, so far, 2022 Q3) and compared them to different baselines. The baselines were established by linear regression followed by adjustment for seasonality. Excess deaths were defined as deaths exceeding a prediction interval around the season adjusted baselines. This analysis therefore takes into account both long term trends, age composition, and seasonality. With this method, I find 81 and 62 excess deaths per 100,000 (~4800 and ~3700 excess deaths, respectively) from 2020 Q1 to 2022 Q3 using the 2010-2019 and 2015-2019 baseline, respectively. Finally, I explore how sensitive the result is to choice of baseline (using 2008-19, 2009-19, 2010-19, 2011-19, 2012-19, 2013-19, 2014-19, 2015-19, and 2016-19 as reference periods) and choice of data stratification (varying age bin size and sex stratification), testing 45 combinations in total. 
+In this analysis, I calculated age and sex stratified death rates (deaths per population size) for each quarter during the Covid-19 pandemic in Denmark (2020 Q1 to, so far, 2022 Q3) and compared them to different baselines. The baselines were established by linear regression followed by adjustment for seasonality. Excess deaths were defined as deaths exceeding a prediction interval around the season adjusted baselines. This analysis therefore takes into account both long term trends, age composition, and seasonality. With this method, I find 81 and 62 excess deaths per 100,000 (~4800 and ~3700 excess deaths, respectively) from 2020 Q1 to 2022 Q3 using the 2010-2019 and 2015-2019 baseline, respectively. Finally, I explored how sensitive the result is to choice of baseline (using 2008-19, 2009-19, 2010-19, 2011-19, 2012-19, 2013-19, 2014-19, 2015-19, and 2016-19 as reference periods) and choice of data stratification (varying age bin size and sex stratification), testing 45 combinations in total. 
 
 ## Methods
 
@@ -350,10 +350,10 @@ preds %>%
   unnest(c(predict, excess)) %>%
   filter(prediction == "2010-19", Year >= 2010) %>%
   ggplot() +
-  geom_ribbon(aes(YQ, ymin = conf_lo * 1000, ymax = conf_hi * 1000), fill = "gray70", alpha = 0.4) +
+  geom_ribbon(aes(YQ, ymin = conf_lo * 1000, ymax = conf_hi * 1000), fill = "gray70", alpha = 0.3) +
   geom_line(aes(YQ, fit * 1000), size = .3) +
   geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70") +
-  geom_line(aes(YQ, Death_rate * 1000, color = Sex), size = .4) +
+  geom_line(aes(YQ, Death_rate * 1000, color = Sex), size = .5) +
   gglayer_1 +
   theme(panel.spacing.y = unit(0.7, "cm"))
 ```
@@ -365,10 +365,10 @@ preds %>%
   unnest(c(predict, excess)) %>%
   filter(prediction == "2015-19", Year >= 2015) %>%
   ggplot() +
-  geom_ribbon(aes(YQ, ymin = conf_lo * 1000, ymax = conf_hi * 1000), fill = "gray70", alpha = 0.4) +
+  geom_ribbon(aes(YQ, ymin = conf_lo * 1000, ymax = conf_hi * 1000), fill = "gray70", alpha = 0.3) +
   geom_line(aes(YQ, fit * 1000), size = .3) +
   geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70") +
-  geom_line(aes(YQ, Death_rate * 1000, color = Sex), size = .4) +
+  geom_line(aes(YQ, Death_rate * 1000, color = Sex), size = .5) +
   gglayer_1 +
   theme(panel.spacing.y = unit(0.7, "cm"))
 ```
@@ -420,7 +420,7 @@ p1 <- preds %>%
   unnest(c(predict, excess)) %>%
   filter(prediction == "2010-19", Year >= 2020) %>%
   ggplot() +
-  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.2) +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.15) +
   geom_line(aes(YQ, (fit  - fit) * 1000), size = .3) +
   geom_line(aes(YQ, (Death_rate - fit) * 1000, color = Sex), size = .7) +
   gglayer_1 +
@@ -434,7 +434,7 @@ p2 <- preds %>%
   unnest(c(predict, excess)) %>%
   filter(prediction == "2015-19", Year >= 2020) %>%
   ggplot() +
-  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.2) +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.15) +
   geom_line(aes(YQ, (fit  - fit) * 1000), size = .3) +
   geom_line(aes(YQ, (Death_rate - fit) * 1000, color = Sex), size = .7) +
   gglayer_1 +
@@ -766,7 +766,7 @@ p1 <- preds_5 %>%
   unnest(c(predict, excess)) %>%
   filter(prediction == "2010-19", Year >= 2020) %>%
   ggplot() +
-  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.2) +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.15) +
   geom_line(aes(YQ, (fit  - fit) * 1000), size = .3) +
   geom_line(aes(YQ, (Death_rate - fit) * 1000, color = Sex), size = .7) +
   gglayer_1 +
@@ -780,7 +780,7 @@ p2 <- preds_5 %>%
   unnest(c(predict, excess)) %>%
   filter(prediction == "2015-19", Year >= 2020) %>%
   ggplot() +
-  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.2) +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.15) +
   geom_line(aes(YQ, (fit  - fit) * 1000), size = .3) +
   geom_line(aes(YQ, (Death_rate - fit) * 1000, color = Sex), size = .7) +
   gglayer_1 +
@@ -881,7 +881,6 @@ excess_whole_pop <- function(df,  ...) {
     Pop_total = mean(Pop_total, na.rm = TRUE)
   ) 
 }
-
 
 preds_strata_10 <- preds_more %>%
   excess_whole_pop() %>%  
