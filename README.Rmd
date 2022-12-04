@@ -511,6 +511,7 @@ preds %>%
   geom_bar(stat = "identity", position = "stack", aes(YQ, excess_abs, fill = Sex, color = Sex), size = 0.1, width = 0.2) +
   scale_y_continuous(limits = c(NA, NA), labels = scales::number) +
   scale_fill_manual(values = colors_2) +
+  scale_color_manual(values = colors_2) +
   labs(
     y = "Excess deaths"
   ) +
@@ -548,6 +549,7 @@ preds %>%
   geom_bar(stat = "identity", aes(Age, excess_abs, fill = Sex, color = Sex), size = 0.1, width = 0.6) +
   scale_y_continuous(limits = c(NA, NA)) +
   scale_fill_manual(values = colors_2) +
+  scale_color_manual(values = colors_2) +
   labs(
     y = "Excess deaths"
   ) +
