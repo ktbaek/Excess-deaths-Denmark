@@ -11,8 +11,8 @@ make_death_rates <- function(deaths_df, pop_df, ...) {
   
   deaths_df %>%
     mutate(
-      Year = as.integer(year(Date)),
-      Quarter = quarter(Date),
+      Year = as.integer(lubridate::year(Date)),
+      Quarter = lubridate::quarter(Date),
       YQ = zoo::as.yearqtr(format(paste0(Year, Quarter)), "%Y%q")
     ) %>%
     # summarize by quarter and strata

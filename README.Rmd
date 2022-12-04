@@ -704,6 +704,12 @@ preds_more %>%
 # make age and sex stratified predictions using 2010-19 and 2015-19 as baselines
 death_rates_5 <- read_csv("data/death_rates_5y_age_sex.csv")
 
+death_rates_5$Age <- factor(death_rates_5$Age, levels = c(
+  "0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39",
+  "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79",
+  "80-84", "85-89", "90-94", "95+"
+))
+
 preds_5 <- 
   make_prediction(death_rates_5, "2008-19", 2008, 2019, Age, Sex) %>% 
   bind_rows(make_prediction(death_rates_5, "2009-19", 2009, 2019, Age, Sex)) %>%
