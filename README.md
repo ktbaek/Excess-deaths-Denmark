@@ -1,24 +1,6 @@
 Quarterly age and sex stratified death rates in Denmark from 2020 to
-2022
+2022 (WIP)
 ================
-true
-2022-12-04
-
--   [Summary](#summary)
--   [Methods](#methods)
-    -   [Data](#data)
-    -   [Death rates](#death-rates)
-    -   [Baselines](#baselines)
-    -   [Excess deaths](#excess-deaths)
-    -   [Main code](#main-code)
--   [Results](#results)
-    -   [Death rates and linear
-        baselines](#death-rates-and-linear-baselines)
-    -   [Taking seasonality into
-        account](#taking-seasonality-into-account)
-    -   [Summarizing excess deaths](#summarizing-excess-deaths)
-    -   [Sensitivity to baseline](#sensitivity-to-baseline)
-    -   [Sensitivity to stratification](#sensitivity-to-stratification)
 
 ## Summary
 

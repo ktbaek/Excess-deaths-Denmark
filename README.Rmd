@@ -1,12 +1,7 @@
 ---
-title: "Quarterly age and sex stratified death rates in Denmark from 2020 to 2022"
-description: "Work in progress"
-author:
-  - name: Kristoffer T. Bæk
-date: "`r Sys.Date()`"
+title: "Quarterly age and sex stratified death rates in Denmark from 2020 to 2022 (WIP)"
 output:
-  rmarkdown::github_document:
-    toc: true
+  rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -208,11 +203,11 @@ make_prediction <- function(df, pred, from, to, ...) {
 ```{r import-10y-data}
 # Import data -------------------------------------------------------------
 pop_quarterly_10 <- c19dk::get_pop_by_breaks(
-  data = "../data/tidy_DST_pop.csv",
+  data = "data/tidy_DST_pop.csv",
   age_breaks = c19dk::get_age_breaks(maxage = 90, agesplit = 10)
 )
 
-deaths_10 <- read_csv2("../data/tidy_DST_daily_deaths_age_sex_10.csv")
+deaths_10 <- read_csv2("data/tidy_DST_daily_deaths_age_sex_10.csv")
 ```
 
 ```{r make-10y-sex-preds}
@@ -743,11 +738,11 @@ preds_more %>%
 ```{r calc-deaths-pop-5y}
 # Import data -------------------------------------------------------------
 pop_quarterly_5 <- c19dk::get_pop_by_breaks(
-  data = "../data/tidy_DST_pop.csv",
+  data = "data/tidy_DST_pop.csv",
   age_breaks = c19dk::get_age_breaks(maxage = 95, agesplit = 5)
 )
 
-deaths_5 <- read_csv2("../data/tidy_DST_daily_deaths_age_sex_5.csv") %>% 
+deaths_5 <- read_csv2("data/tidy_DST_daily_deaths_age_sex_5.csv") %>% 
   # grouping 95+ into one group
   mutate(Age = case_when(
     Age == "95-99" ~ "95+",
