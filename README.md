@@ -1,27 +1,25 @@
 Quarterly age and sex stratified death rates in Denmark from 2020 to
 2022 (WIP)
 ================
+Kristoffer T. Bæk
 
 ## Summary
 
 In this analysis, I calculated age and sex stratified death rates
 (deaths per population size) for each quarter during the Covid-19
-pandemic in Denmark (2020 Q1 to, so far, 2022 Q3) and compared them to
-pre-pandemic death rates using two different baselines. The baselines
-were established by linear regression followed by adjustment for
-seasonality. Excess deaths were defined as deaths exceeding a prediction
-interval (1.96
-![\\times](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Ctimes "\times")
-standard deviation using the chosen baseline period) around the season
-adjusted baselines. This analysis therefore takes into account both long
-term trends, age composition, and seasonality. With this method, I find
-81 and 62 excess deaths per 100,000 (\~4800 and \~3700 excess deaths,
-respectively) from 2020 Q1 to 2022 Q3 using the 2010-19 and 2015-19
-baseline, respectively. Finally, I explore how sensitive the result is
-to choice of baseline (using 2008-19, 2009-19, 2010-19, 2011-19,
-2012-19, 2013-19, 2014-19, 2015-19, and 2016-19 baselines) and choice of
-data stratification (varying age bin size and sex stratification),
-testing 45 combinations in total.
+pandemic in Denmark (2020 Q1 to, so far, 2022 Q3) and compared them
+baseline reference periods 2010-2019 and 2015-2019. The baselines were
+established by linear regression followed by adjustment for seasonality.
+Excess deaths were defined as deaths exceeding a prediction interval
+around the season adjusted baselines. This analysis therefore takes into
+account both long term trends, age composition, and seasonality. With
+this method, I find 81 and 62 excess deaths per 100,000 (\~4800 and
+\~3700 excess deaths, respectively) from 2020 Q1 to 2022 Q3 using the
+2010-19 and 2015-19 baseline, respectively. Finally, I explore how
+sensitive the result is to choice of baseline (using 2008-19, 2009-19,
+2010-19, 2011-19, 2012-19, 2013-19, 2014-19, 2015-19, and 2016-19
+baselines) and choice of data stratification (varying age bin size and
+sex stratification), testing 45 combinations in total.
 
 ## Methods
 
@@ -42,30 +40,25 @@ population size at the start of the quarter.
 ### Baselines
 
 Baselines were established in two steps. First, I used linear regression
-on quarterly death rates for a given baseline period (e.g. 2010-2019) to
-establish linear baselines. Then, season adjusted baselines were
+on quarterly death rates for a given reference period (e.g. 2010-2019)
+to establish linear baselines. Then, season adjusted baselines were
 calculated using the formulas below. Basically, I calculated the mean
 relative deviation
 (![\\overline {rd_Q}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Coverline%20%7Brd_Q%7D "\overline {rd_Q}"))
-from the linear baseline for each quarter-type,
-![Q](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;Q "Q")
-(1, 2, 3, or 4) for the baseline years
+from the linear baseline for each quarter-type, *Q* (1, 2, 3, or 4) for
+the reference years
 (![i](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;i "i")),
 and calculated the season adjusted baseline,
 ![baseline\_{s}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;baseline_%7Bs%7D "baseline_{s}"),
-as the linear baseline value
-![+](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%2B "+")
-the product of
+as the linear baseline value plus the product of
 ![\\overline {rd_Q}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Coverline%20%7Brd_Q%7D "\overline {rd_Q}")
 and the linear baseline value.
 
 The 95% prediction interval
 ![PI](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;PI "PI")
-was calculated as the season adjusted baseline value +/- 1.96
-![\\times](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Ctimes "\times")
-the relative standard deviation for each quarter-type
-![Q](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;Q "Q")
-multiplied by the linear baseline value.
+was calculated as the season adjusted baseline value +/- 1.96 times the
+relative standard deviation for each quarter-type *Q* multiplied by the
+linear baseline value.
 
 ![\\overline {rd_Q} = \\frac{1}{N}\\sum\_{i=1}^{N} \\frac{residual\_{i,Q}}{baseline\_{i,Q}}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Coverline%20%7Brd_Q%7D%20%3D%20%5Cfrac%7B1%7D%7BN%7D%5Csum_%7Bi%3D1%7D%5E%7BN%7D%20%5Cfrac%7Bresidual_%7Bi%2CQ%7D%7D%7Bbaseline_%7Bi%2CQ%7D%7D "\overline {rd_Q} = \frac{1}{N}\sum_{i=1}^{N} \frac{residual_{i,Q}}{baseline_{i,Q}}")
 
@@ -84,33 +77,6 @@ All data manipulations and calculations were performed in R.
 
 ``` r
 # Main functions ---------------------------------------------------------------
-make_death_rates <- function(deaths_df, pop_df, ...) {
-  #' Function that calculates death rates
-  #' @param deaths_df Data frame with death numbers
-  #' @param pop_df Data frame with population numbers
-  #' @param ... Stratification variables
-  #' @return Data frame 
-  pop_df %<>%
-    # summarize by quarter and strata
-    group_by(..., Year, Quarter) %>%
-    summarize(Population = sum(Population, na.rm = TRUE))
-
-  deaths_df %>%
-    mutate(
-      Year = as.integer(year(Date)),
-      Quarter = quarter(Date),
-      YQ = zoo::as.yearqtr(format(paste0(Year, Quarter)), "%Y%q")
-    ) %>%
-    # summarize by quarter and strata
-    group_by(..., Year, Quarter, YQ) %>%
-    summarize(Deaths = sum(Deaths, na.rm = TRUE)) %>%
-    # calculate death rates
-    right_join(pop_df, by = c(purrr::map_chr(enquos(...), rlang::as_label), "Year", "Quarter")) %>%
-    filter(YQ != "2022 Q4") %>% # excluding current incomplete quarter
-    mutate(Death_rate = Deaths / Population) %>%
-    ungroup()
-}
-
 make_base_df <- function(df, from, to, ...) {
   #' Helper function that makes nested data frame with death rates for the baseline period
   #' @param df Data frame with death rates
@@ -120,6 +86,7 @@ make_base_df <- function(df, from, to, ...) {
   #' @return Nested data frame
   df %>%
     select(..., Year, YQ, Quarter, Death_rate) %>%
+    mutate(YQ = zoo::as.yearqtr(YQ)) %>% 
     filter(
       Year >= from,
       Year <= to
@@ -187,7 +154,7 @@ make_prediction <- function(df, pred, from, to, ...) {
   #' @return Nested data frame
   df %>%
     select(..., Year, YQ, Quarter, Population, Death_rate) %>%
-    mutate(prediction = pred) %>%
+    mutate(prediction = pred, YQ = zoo::as.yearqtr(YQ)) %>%
     nest(all_data = -c(prediction, ...)) %>% # "all_data" is all data points from 2010-now
     full_join(make_base_df(df, from, to, ...), by = purrr::map_chr(enquos(...), rlang::as_label)) %>%
     mutate(
@@ -211,9 +178,8 @@ make_prediction <- function(df, pred, from, to, ...) {
 
 I calculated death rates for each age and sex group using 10-year bins.
 The death rate is here defined as the number of deaths for a given
-quarter (Figure @ref(fig:deaths-population)A and B) divided by the
-population size at the start of the quarter (Figure
-@ref(fig:deaths-population)C).
+quarter (shown below in panel A and B) divided by the population size at
+the start of the quarter (panel C).
 
 ![**Population size and number of deaths in each age group for the each
 quarter from 2010 Q1 to 2022 Q3.** (A) Deaths shown with fixed y-axis,
@@ -223,23 +189,21 @@ size.](README_files/figure-gfm/deaths-population-1.png)
 In order to calculate excess deaths-rates during the Covid-19 pandemic,
 a baseline defining the normal death rate must be established against
 which the death rates during 2020-22 is compared. I used two different
-time periods to establish baselines, a 10-year period from 2010-2019 and
-5-year period from 2015-19. To establish baselines, I used linear
-regressions.
+reference periods to establish baselines, a 10-year period from 2010 to
+2019 and 5-year period from 2015 to 2019. To establish baselines, I used
+linear regressions.
 
-Figure @ref(fig:linear-baselines-10y-sex) shows the quarterly death
-rates for each group from 2010-2022 Q3. First off, note the decreasing
-trend in death rates for the age groups 10-89, which is particularly
-striking for the middle age groups (40-59). For most age groups, the
-2010-19 baseline describes the death-rate trend very well. For the age
-group 70-79, however, it looks like the decreasing trend from 2010 to
-2019 may be flattening towards the end of the period, highlighting the
-importance of baseline choice (as shown in Figure
-@ref(fig:excess-both-bases-age-sex) the choice for this age group has a
-large impact). For the males in the age-groups 10-19 and 30-39, the two
-baselines differ greatly, which may be caused by a combination of large
-variation and outliers skewing the 2015-19 baselines. These groups,
-however, only contribute little to the overall excess death rate.
+The figure below shows the quarterly death rates for each group from
+2010-2022 Q3. For most age groups, the 2010-19 baseline describes the
+death-rate trend very well. For the age group 70-79, however, it looks
+like the decreasing trend from 2010 to 2019 may be flattening towards
+the end of the period, highlighting the importance of baseline choice
+(as shown in Figure @ref(fig:excess-both-bases-age-sex) the choice for
+this age group has a large impact). For the males in the age-groups
+10-19 and 30-39, the two baselines differ greatly, which may be caused
+by a combination of large variation and outliers skewing the 2015-19
+baselines. These groups, however, only contribute little to the overall
+excess death rate.
 
 ![**Death rates and baselines.** Quarterly death rates (deaths per 1000
 people) for each age and sex group from 2010 to 2022 Q3 (colored lines).
@@ -340,6 +304,11 @@ deaths exceeding the season adjusted baseline +/- the 95% prediction
 interval in a given quarter. Age groups 0-19 are
 ommitted.](README_files/figure-gfm/excess-both-bases-quarter-age-1.png)
 
+![**Excess deaths by sex and quarter.** Excess deaths are defined as
+deaths exceeding the season adjusted baseline +/- the 95% prediction
+interval in a given
+quarter.](README_files/figure-gfm/excess-both-bases-quarter-sex-1.png)
+
 | Age   | Base 2010-19: Female | Base 2010-19: Male | Base 2015-19: Female | Base 2015-19: Male |
 |:------|---------------------:|-------------------:|---------------------:|-------------------:|
 | 0-9   |                    3 |                  0 |                    9 |                  1 |
@@ -356,11 +325,6 @@ ommitted.](README_files/figure-gfm/excess-both-bases-quarter-age-1.png)
 
 Excess deaths for each age group, sex and baseline for the period 2020
 Q1 - 2022 Q3. Rounded to whole numbers.
-
-![**Excess deaths by sex and quarter.** Excess deaths are defined as
-deaths exceeding the season adjusted baseline +/- the 95% prediction
-interval in a given
-quarter.](README_files/figure-gfm/excess-both-bases-quarter-sex-1.png)
 
 ![**Excess deaths by sex and age.** Excess deaths are defined as deaths
 exceeding the season adjusted baseline +/- the 95% prediction interval
