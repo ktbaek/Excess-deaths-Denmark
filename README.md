@@ -7,19 +7,19 @@ Kristoffer T. Bæk
 
 In this analysis, I calculated age and sex stratified death rates
 (deaths per population size) for each quarter during the Covid-19
-pandemic in Denmark (2020 Q1 to, so far, 2022 Q3) and compared them
-baseline reference periods 2010-2019 and 2015-2019. The baselines were
-established by linear regression followed by adjustment for seasonality.
-Excess deaths were defined as deaths exceeding a prediction interval
-around the season adjusted baselines. This analysis therefore takes into
-account both long term trends, age composition, and seasonality. With
-this method, I find 81 and 62 excess deaths per 100,000 (\~4800 and
-\~3700 excess deaths, respectively) from 2020 Q1 to 2022 Q3 using the
-2010-19 and 2015-19 baseline, respectively. Finally, I explore how
-sensitive the result is to choice of baseline (using 2008-19, 2009-19,
-2010-19, 2011-19, 2012-19, 2013-19, 2014-19, 2015-19, and 2016-19
-baselines) and choice of data stratification (varying age bin size and
-sex stratification), testing 45 combinations in total.
+pandemic in Denmark (2020 Q1 to, so far, 2022 Q3) and compared them to
+different baselines. The baselines were established by linear regression
+followed by adjustment for seasonality. Excess deaths were defined as
+deaths exceeding a prediction interval around the season adjusted
+baselines. This analysis therefore takes into account both long term
+trends, age composition, and seasonality. With this method, I find 81
+and 62 excess deaths per 100,000 (\~4800 and \~3700 excess deaths,
+respectively) from 2020 Q1 to 2022 Q3 using the 2010-2019 and 2015-2019
+baseline, respectively. Finally, I explore how sensitive the result is
+to choice of baseline (using 2008-19, 2009-19, 2010-19, 2011-19,
+2012-19, 2013-19, 2014-19, 2015-19, and 2016-19 as reference periods)
+and choice of data stratification (varying age bin size and sex
+stratification), testing 45 combinations in total.
 
 ## Methods
 
@@ -46,19 +46,15 @@ calculated using the formulas below. Basically, I calculated the mean
 relative deviation
 (![\\overline {rd_Q}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Coverline%20%7Brd_Q%7D "\overline {rd_Q}"))
 from the linear baseline for each quarter-type, *Q* (1, 2, 3, or 4) for
-the reference years
-(![i](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;i "i")),
-and calculated the season adjusted baseline,
+the reference years (*i*), and calculated the season adjusted baseline,
 ![baseline\_{s}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;baseline_%7Bs%7D "baseline_{s}"),
 as the linear baseline value plus the product of
 ![\\overline {rd_Q}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Coverline%20%7Brd_Q%7D "\overline {rd_Q}")
 and the linear baseline value.
 
-The 95% prediction interval
-![PI](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;PI "PI")
-was calculated as the season adjusted baseline value +/- 1.96 times the
-relative standard deviation for each quarter-type *Q* multiplied by the
-linear baseline value.
+The 95% prediction interval *PI* was calculated as the season adjusted
+baseline value +/- 1.96 times the relative standard deviation for each
+quarter-type *Q* multiplied by the linear baseline value.
 
 ![\\overline {rd_Q} = \\frac{1}{N}\\sum\_{i=1}^{N} \\frac{residual\_{i,Q}}{baseline\_{i,Q}}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Coverline%20%7Brd_Q%7D%20%3D%20%5Cfrac%7B1%7D%7BN%7D%5Csum_%7Bi%3D1%7D%5E%7BN%7D%20%5Cfrac%7Bresidual_%7Bi%2CQ%7D%7D%7Bbaseline_%7Bi%2CQ%7D%7D "\overline {rd_Q} = \frac{1}{N}\sum_{i=1}^{N} \frac{residual_{i,Q}}{baseline_{i,Q}}")
 
