@@ -204,7 +204,7 @@ preds <- make_prediction(death_rates_10, "2010-19", 2010, 2019, Age, Sex) %>%
 ```
 
 
-I calculated death rates for each age and sex group using 10-year bins. The death rate is here defined as the number of deaths for a given quarter (shown below in panel A and B) divided by the population size at the start of the quarter (panel C). 
+I calculated death rates for each age and sex group using 10-year bins. The death rate is here defined as the number of deaths for a given quarter (Figure 1A and B) divided by the population size at the start of the quarter (Figure 1C). 
 
 ```{r deaths-population, echo=FALSE, fig.asp=1, layout="l-page", fig.cap = "**Population size and number of deaths in each age group for the each quarter from 2010 Q1 to 2022 Q3.** (A) Deaths shown with fixed y-axis, (B) deaths shown with variable y-axes, and (C) population size."}
 p1 <- death_rates_10 %>%
@@ -258,6 +258,8 @@ p3 <- death_rates_10 %>%
 p1 / p2 / p3 + plot_annotation(tag_levels = "A") + plot_layout(guides = "collect") & theme(legend.position = "bottom")
 ```
 
+***Figure 1: Population size and number of deaths in each age group for the each quarter from 2010 Q1 to 2022 Q3.** (A) Deaths shown with fixed y-axis, (B) deaths shown with variable y-axes, and (C) population size.*
+
 In order to calculate excess deaths-rates during the Covid-19 pandemic, a baseline defining the normal death rate must be established against which the death rates during 2020-22 is compared. I used two different reference periods to establish baselines, a 10-year period from 2010 to 2019 and 5-year period from 2015 to 2019. To establish baselines, I used linear regressions. 
 
 The figure below shows the quarterly death rates for each group from 2010-2022 Q3. For most age groups, the 2010-19 baseline describes the death-rate trend very well. For the age group 70-79, however, it looks like the decreasing trend from 2010 to 2019 may be flattening towards the end of the period, highlighting the importance of baseline choice (as shown in Figure \@ref(fig:excess-both-bases-age-sex) the choice for this age group has a large impact). For the males in the age-groups 10-19 and 30-39, the two baselines differ greatly, which may be caused by a combination of large variation and outliers skewing the 2015-19 baselines. These groups, however, only contribute little to the overall excess death rate.
@@ -291,6 +293,9 @@ preds %>%
     panel.spacing = unit(0.3, "cm")
   )
 ```
+
+***Figure 2: Death rates and linear baselines.** Quarterly death rates (deaths per 1000 people) for each age and sex group from 2010 to 2022 Q3 (colored lines). The black lines indicate linear regressions, defining two different baselines, based on the years 2010-19 (solid line) and 2015-19 (dashed line). The vertical gray line indicate the border between the reference period and the period of interest (2020-22).*
+
 
 ### Taking seasonality into account
 
@@ -328,6 +333,8 @@ preds %>%
   )
 ```
 
+***Figure 3: Seasonal deviation from linear baselines (showed for 2010-19 reference period).** The colored lines show the relative (%) deviation from the linear baseline for each year from 2010-19. Black dots indicate the mean relative deviation for each quarter and vertical lines indicate the standard deviation of the relative deviations. The gray bands indicate the derived prediction intervals.*
+
 To better interpret how much the death rates during the pandemic deviate from the baselines, I established season adjusted baselines and a 95% prediction interval (calculated as 1.96 $\times$ standard deviation) based on the quarter-specific variation shown in Figure \@ref(fig:seasonality-10y-sex). The prediction interval thus reflects the expected variation around the season adjusted baseline based on the observed pre-pandemic variation. Note, that it is here assumed that the expected seasonal variation is proportional to the linear baseline value within each stratification group (the 40-49yo age group in Figure \@ref(fig:sab-10y-sex-norm) exemplifies this). Figures \@ref(fig:sab-10y-sex-base1) and \@ref(fig:sab-10y-sex-base2) show the death rates for each age and sex group together with the season adjusted baselines.
 
 ```{r sab-10y-sex-base1, echo=FALSE, fig.asp=1.3, layout="l-page", fig.cap = "**Quarterly death rates and season adjusted baselines using  2010-19 as reference period.** Colored lines indicate the quarterly death rates, black lines indicate the season adjusted baselines, and the gray band indicate the 95% prediction interval. Sex is indicated on top, age on the right."}
@@ -358,6 +365,8 @@ preds %>%
   theme(panel.spacing.y = unit(0.7, "cm"))
 ```
 
+***Figure 4: Quarterly death rates and season adjusted baselines using  2010-19 as reference period.** Colored lines indicate the quarterly death rates, black lines indicate the season adjusted baselines, and the gray band indicate the 95% prediction interval. Sex is indicated on top, age on the right.*
+
 
 ```{r sab-10y-sex-base2, echo=FALSE, fig.asp=1.3, layout="l-page", fig.cap = "**Quarterly death rates and season adjusted baselines using  2015-19 as reference period.** Colored lines indicate the quarterly death rates, black lines indicate the season adjusted baselines, and the gray band indicate the 95% prediction interval. Sex is indicated on top, age on the right."}
 
@@ -372,6 +381,8 @@ preds %>%
   gglayer_1 +
   theme(panel.spacing.y = unit(0.7, "cm"))
 ```
+
+***Figure 5: Quarterly death rates and season adjusted baselines using  2015-19 as reference period.** Colored lines indicate the quarterly death rates, black lines indicate the season adjusted baselines, and the gray band indicate the 95% prediction interval. Sex is indicated on top, age on the right.*
 
 In the following figures (Figure \@ref(fig:sab-10y-sex-norm) and \@ref(fig:sab-10y-sex-norm-covid)), I show the difference between the observed death rates and the expected season adjusted death rates ($\Delta$death rates), effectively de-trending and de-seasonalizing the death rates and baselines.
 
@@ -412,7 +423,7 @@ p2 <- preds %>%
 p1 + p2 + plot_annotation(tag_levels = "A") & theme(legend.position = "none")
 ```
 
-
+***Figure 6: De-trended/de-seasonalized quarterly death rates and  baselines.** (A) Baseline reference period 2010-19, and (B) baseline reference period 2015-19. Colored lines indicate the quarterly death rates, black lines indicate the baselines, and the gray bands indicate the 95% prediction intervals. Sex is indicted on top, age on the right.*
 
 ```{r sab-10y-sex-norm-covid, echo=FALSE, fig.asp=0.9, layout="l-page", fig.cap = "**De-trended/de-seasonalized quarterly death rates and  baselines for 2020-2022.** (A) Baseline reference period 2010-19, and (B) baseline reference period 2015-19. Colored lines indicate the quarterly death rates for males (blue lines) and females (red lines), black lines indicate the baselines, and the transparent colored bands indicate the 95% prediction intervals for males (blue) and females (red). Sex is indicted on top, age on the right."}
 
@@ -448,10 +459,7 @@ p2 <- preds %>%
  p1 / p2 + plot_annotation(tag_levels = "A") + plot_layout(guides = "collect") & theme(legend.position = "bottom")
 ```
 
-
-
-
-
+***Figure 7: De-trended/de-seasonalized quarterly death rates and  baselines for 2020-2022.** (A) Baseline reference period 2010-19, and (B) baseline reference period 2015-19. Colored lines indicate the quarterly death rates for males  and females, black lines indicate the baselines, and the transparent colored bands indicate the 95% prediction intervals for males (blue) and females (yellow).*
 
 
 ### Summarizing excess deaths
@@ -500,6 +508,8 @@ preds %>%
   )
 ```
 
+***Figure 8: Excess deaths by age and quarter.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter. Age groups 0-19 are ommitted.*
+
 ```{r excess-both-bases-quarter-sex, echo=FALSE, fig.asp=0.55, layout="l-body-outset", fig.cap = "**Excess deaths by sex and quarter.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter."}
 
 preds %>%
@@ -526,6 +536,8 @@ preds %>%
   )
 ```
 
+***Figure 9: Excess deaths by sex and quarter.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter.*
+
 ```{r, excess-table, layout = "l-page"}
 preds %>%
   unnest(c(predict, excess)) %>%
@@ -537,7 +549,7 @@ preds %>%
   select(Age, `Base 2010-19: Female`, `Base 2010-19: Male`, everything()) %>%
   ungroup() %>%
   add_row(Age = "All", summarise(., across(where(is.numeric), sum))) %>%
-  knitr::kable(caption = "Excess deaths for each age group, sex and baseline for the period 2020 Q1 - 2022 Q3. Rounded to whole numbers.")
+  knitr::kable(caption = "Table 1: Excess deaths for each age group, sex and baseline for the period 2020 Q1 - 2022 Q3. Rounded to whole numbers.")
 ```
 
 
@@ -562,6 +574,8 @@ preds %>%
     legend.title = element_blank()
   )
 ```
+
+***Figure 10: Excess deaths by sex and age.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter. Total excess deaths over the period 2020 Q1 - 2022 Q3 are summed.*
 
 ```{r excessrate-both-bases-year, echo=FALSE, fig.asp=0.5, fig.cap = "**Excess deaths per 100,000 of the total Danish population per year.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval for a given stratification in a given quarter. *) 2022 is calculated based on Q1, Q2, and Q3 only. The population for each year is taken as the mean of the population at the start of each quarter."}
 preds %>%
@@ -591,6 +605,8 @@ preds %>%
     legend.text = element_text(size = 8)
   )
 ```
+
+***Figure 11: Excess deaths per 100,000 of the total Danish population per year.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval for a given stratification in a given quarter. \*) 2022 is calculated based on Q1, Q2, and Q3 only. The population for each year is taken as the mean of the population at the start of each quarter.*
 
 ### Sensitivity to baseline
 
@@ -654,13 +670,14 @@ p2 <- preds_more %>%
     axis.text.y = element_text(size = rel(1.1)),
     axis.title.x = element_text(face = "bold", size = rel(1)),
     panel.grid.minor.x = element_blank(),
-    legend.text = element_text(size = 8)
+    legend.text = element_text(size = 8),
+    legend.title = element_blank()
   )
 
  p1 / p2 + plot_annotation(tag_levels = "A")
 ```
 
-
+***Figure 12: Excess deaths for the period 2020 Q1 - 2022 Q3 depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter. Baseline period is indicated on the x-axis. (A) Excess deaths per 100,000 of the total Danish population, and (B) excess deaths stratified by age.*
 
 ```{r sab-10y-old-more-base, echo=FALSE, fig.asp=0.5, layout="l-screen", fig.cap = "**De-trended/de-seasonalized death rates and baselines for older age groups using different baseline reference periods.** Colored lines indicate the quarterly death rates for males (blue lines) and females (red lines), black lines indicate the baselines, and the transparent colored bands indicate the 95% prediction intervals for males (blue) and females (red), and the vertical gray line indicates the border between reference period and pandemic period. Age group is indicated on the right. "}
 
@@ -693,6 +710,8 @@ preds_more %>%
     legend.title = element_blank()
   )
 ```
+
+***Figure 13: De-trended/de-seasonalized death rates and baselines for older age groups using different baseline reference periods.** Colored lines indicate the quarterly death rates for males (blue lines) and females (yellow lines), black lines indicate the baselines, and the transparent colored bands indicate the 95% prediction intervals for males (blue) and females (yellow), and the vertical gray line indicates the border between reference period and pandemic period. Age group is indicated on the right.*
 
 ### Sensitivity to stratification
 
