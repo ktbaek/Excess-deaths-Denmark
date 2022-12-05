@@ -180,7 +180,7 @@ the quarter (Figure 1C).
 ![**Population size and number of deaths in each age group for the each
 quarter from 2010 Q1 to 2022 Q3.** (A) Deaths shown with fixed y-axis,
 (B) deaths shown with variable y-axes, and (C) population
-size.](README_files/figure-gfm/deaths-population-1.png)
+size.](README_files/figure-gfm/Figure-1-1.png)
 
 ***Figure 1: Population size and number of deaths in each age group for
 the each quarter from 2010 Q1 to 2022 Q3.** (A) Deaths shown with fixed
@@ -211,7 +211,7 @@ The black lines indicate linear regressions, defining two different
 baselines, based on the years 2010-19 (solid line) and 2015-19 (dashed
 line). The vertical gray line indicate the border between the reference
 period and the period of interest
-(2020-22).](README_files/figure-gfm/linear-baselines-10y-sex-1.png)
+(2020-22).](README_files/figure-gfm/Figure-2-1.png)
 
 ***Figure 2: Death rates and linear baselines.** Quarterly death rates
 (deaths per 1000 people) for each age and sex group from 2010 to 2022 Q3
@@ -234,7 +234,7 @@ from the linear baseline for each year from 2010-19. Black dots indicate
 the mean relative deviation for each quarter and vertical lines indicate
 the standard deviation of the relative deviations. The gray bands
 indicate the derived prediction
-intervals.](README_files/figure-gfm/seasonality-10y-sex-1.png)
+intervals.](README_files/figure-gfm/Figure-3-1.png)
 
 ***Figure 3: Seasonal deviation from linear baselines (showed for
 2010-19 reference period).** The colored lines show the relative (%)
@@ -262,7 +262,7 @@ baselines.
 reference period.** Colored lines indicate the quarterly death rates,
 black lines indicate the season adjusted baselines, and the gray band
 indicate the 95% prediction interval. Sex is indicated on top, age on
-the right.](README_files/figure-gfm/sab-10y-sex-base1-1.png)
+the right.](README_files/figure-gfm/Figure-4-1.png)
 
 ***Figure 4: Quarterly death rates and season adjusted baselines using
 2010-19 as reference period.** Colored lines indicate the quarterly
@@ -274,7 +274,7 @@ age on the right.*
 reference period.** Colored lines indicate the quarterly death rates,
 black lines indicate the season adjusted baselines, and the gray band
 indicate the 95% prediction interval. Sex is indicated on top, age on
-the right.](README_files/figure-gfm/sab-10y-sex-base2-1.png)
+the right.](README_files/figure-gfm/Figure-5-1.png)
 
 ***Figure 5: Quarterly death rates and season adjusted baselines using
 2015-19 as reference period.** Colored lines indicate the quarterly
@@ -294,13 +294,14 @@ baselines.
 2015-19. Colored lines indicate the quarterly death rates, black lines
 indicate the baselines, and the gray bands indicate the 95% prediction
 intervals. Sex is indicted on top, age on the
-right.](README_files/figure-gfm/sab-10y-sex-norm-1.png)
+right.](README_files/figure-gfm/Figure-6-1.png)
 
 ***Figure 6: De-trended/de-seasonalized quarterly death rates and
 baselines.** (A) Baseline reference period 2010-19, and (B) baseline
 reference period 2015-19. Colored lines indicate the quarterly death
 rates, black lines indicate the baselines, and the gray bands indicate
-the 95% prediction intervals. Sex is indicted on top, age on the right.*
+the 95% prediction intervals. Sex is indicated on top, age on the
+right.*
 
 ![**De-trended/de-seasonalized quarterly death rates and baselines for
 2020-2022.** (A) Baseline reference period 2010-19, and (B) baseline
@@ -309,15 +310,14 @@ rates for males (blue lines) and females (red lines), black lines
 indicate the baselines, and the transparent colored bands indicate the
 95% prediction intervals for males (blue) and females (red). Sex is
 indicted on top, age on the
-right.](README_files/figure-gfm/sab-10y-sex-norm-covid-1.png)
+right.](README_files/figure-gfm/Figure-7-1.png)
 
 ***Figure 7: De-trended/de-seasonalized quarterly death rates and
 baselines for 2020-2022.** (A) Baseline reference period 2010-19, and
 (B) baseline reference period 2015-19. Colored lines indicate the
-quarterly death rates for males (blue lines) and females (yellow lines),
-black lines indicate the baselines, and the transparent colored bands
-indicate the 95% prediction intervals for males (blue) and females
-(yellow). Sex is indicated on top, age on the right.*
+quarterly death rates for males and females, black lines indicate the
+baselines, and the transparent colored bands indicate the 95% prediction
+intervals for males (blue) and females (yellow).*
 
 ### Summarizing excess deaths
 
@@ -342,7 +342,7 @@ the entire population per year.
 ![**Excess deaths by age and quarter.** Excess deaths are defined as
 deaths exceeding the season adjusted baseline +/- the 95% prediction
 interval in a given quarter. Age groups 0-19 are
-ommitted.](README_files/figure-gfm/excess-both-bases-quarter-age-1.png)
+ommitted.](README_files/figure-gfm/Figure-8-1.png)
 
 ***Figure 8: Excess deaths by age and quarter.** Excess deaths are
 defined as deaths exceeding the season adjusted baseline +/- the 95%
@@ -350,8 +350,7 @@ prediction interval in a given quarter. Age groups 0-19 are ommitted.*
 
 ![**Excess deaths by sex and quarter.** Excess deaths are defined as
 deaths exceeding the season adjusted baseline +/- the 95% prediction
-interval in a given
-quarter.](README_files/figure-gfm/excess-both-bases-quarter-sex-1.png)
+interval in a given quarter.](README_files/figure-gfm/Figure-9-1.png)
 
 ***Figure 9: Excess deaths by sex and quarter.** Excess deaths are
 defined as deaths exceeding the season adjusted baseline +/- the 95%
@@ -377,7 +376,7 @@ period 2020 Q1 - 2022 Q3. Rounded to whole numbers.
 ![**Excess deaths by sex and age.** Excess deaths are defined as deaths
 exceeding the season adjusted baseline +/- the 95% prediction interval
 in a given quarter. Total excess deaths over the period 2020 Q1 - 2022
-Q3 are summed.](README_files/figure-gfm/excess-both-bases-age-sex-1.png)
+Q3 are summed.](README_files/figure-gfm/Figure-10-1.png)
 
 ***Figure 10: Excess deaths by sex and age.** Excess deaths are defined
 as deaths exceeding the season adjusted baseline +/- the 95% prediction
@@ -389,8 +388,7 @@ Excess deaths are defined as deaths exceeding the season adjusted
 baseline +/- the 95% prediction interval for a given stratification in a
 given quarter. \*) 2022 is calculated based on Q1, Q2, and Q3 only. The
 population for each year is taken as the mean of the population at the
-start of each
-quarter.](README_files/figure-gfm/excessrate-both-bases-year-1.png)
+start of each quarter.](README_files/figure-gfm/Figure-11-1.png)
 
 ***Figure 11: Excess deaths per 100,000 of the total Danish population
 per year.** Excess deaths are defined as deaths exceeding the season
@@ -410,8 +408,7 @@ reference period.** Excess deaths are defined as deaths exceeding the
 season adjusted baseline +/- the 95% prediction interval in a given
 quarter. Baseline period is indicated on the x-axis. (A) Excess deaths
 per 100,000 of the total Danish population, and (B) excess deaths
-stratified by
-age.](README_files/figure-gfm/excessrate-more-bases-10y-sex-1.png)
+stratified by age.](README_files/figure-gfm/Figure-12-1.png)
 
 ***Figure 12: Excess deaths for the period 2020 Q1 - 2022 Q3 depending
 on baseline reference period.** Excess deaths are defined as deaths
@@ -427,16 +424,15 @@ indicate the quarterly death rates for males (blue lines) and females
 colored bands indicate the 95% prediction intervals for males (blue) and
 females (red), and the vertical gray line indicates the border between
 reference period and pandemic period. Age group is indicated on the
-right.](README_files/figure-gfm/sab-10y-old-more-base-1.png)
+right.](README_files/figure-gfm/Figure-13-1.png)
 
 ***Figure 13: De-trended/de-seasonalized death rates and baselines for
 older age groups using different baseline reference periods.** Colored
-lines indicate the quarterly death rates for males (blue lines) and
-females (yellow lines), black lines indicate the baselines, and the
-transparent colored bands indicate the 95% prediction intervals for
-males (blue) and females (yellow), and the vertical gray line indicates
-the border between reference period and pandemic period. Age group is
-indicated on the right.*
+lines indicate the quarterly death rates for males and females , black
+lines indicate the baselines, and the transparent colored bands indicate
+the 95% prediction intervals for males (blue) and females (yellow), and
+the vertical gray line indicates the border between reference period and
+pandemic period. Age group is indicated on the right.*
 
 ### Sensitivity to stratification
 
@@ -445,7 +441,14 @@ indicated on the right.*
 baseline reference period 2015-19. Colored lines indicate the quarterly
 death rates, black lines indicate the baselines, and the gray bands
 indicate the 95% prediction intervals. Sex is indicted on top, age on
-the right.](README_files/figure-gfm/sab-5y-sex-base2-norm-1.png)
+the right.](README_files/figure-gfm/Figure-14-1.png)
+
+***Figure 14: De-trended/de-seasonalized quarterly death rates and
+baselines using 5-year age brackets.** (A) Baseline reference period
+2010-19, and (B) baseline reference period 2015-19. Colored lines
+indicate the quarterly death rates, black lines indicate the baselines,
+and the gray bands indicate the 95% prediction intervals. Sex is
+indicted on top, age on the right.*
 
 ![**De-trended/de-seasonalized quarterly death rates and baselines for
 2020-2022 using 5-year age brackets.** (A) Baseline reference period
@@ -454,15 +457,40 @@ indicate the quarterly death rates for males (blue lines) and females
 (red lines), black lines indicate the baselines, and the transparent
 colored bands indicate the 95% prediction intervals for males (blue) and
 females (red). Sex is indicted on top, age on the
-right.](README_files/figure-gfm/sab-5y-sex-base2-norm-covid-1.png)
+right.](README_files/figure-gfm/Figure-15-1.png)
 
-![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+***Figure 15: De-trended/de-seasonalized quarterly death rates and
+baselines for 2020-2022 using 5-year age brackets.** (A) Baseline
+reference period 2010-19, and (B) baseline reference period 2015-19.
+Colored lines indicate the quarterly death rates for males and females ,
+black lines indicate the baselines, and the transparent colored bands
+indicate the 95% prediction intervals for males (blue) and females
+(red).*
+
+![](README_files/figure-gfm/Figure-16-1.png)<!-- -->
+
+***Figure 16: Excess deaths by age for the period 2020 Q1 - 2022 Q3
+depending on baseline reference period using 5-year brackets.** Excess
+deaths are defined as deaths exceeding the season adjusted baseline +/-
+the 95% prediction interval in a given quarter. Baseline period is
+indicated on the x-axis.*
 
 ![**Excess deaths per 100,000 of the total Danish population for the
 period 2020 Q1 - 2022 Q3 for stratified and non-stratified data
 depending on baseline reference period.** Excess deaths are defined as
 deaths exceeding the season adjusted baseline +/- the 95% prediction in
 a given quarter. Baseline reference period is indicated on the
-x-axis.](README_files/figure-gfm/excessrate-all-preds-1.png)
+x-axis.](README_files/figure-gfm/Figure-17-1.png) ***Figure 17: Excess
+deaths per 100,000 of the total Danish population for the period 2020
+Q1 - 2022 Q3 for stratified and non-stratified data depending on
+baseline reference period.** Excess deaths are defined as deaths
+exceeding the season adjusted baseline +/- the 95% prediction in a given
+quarter. Baseline reference period is indicated on the x-axis.*
 
-![](README_files/figure-gfm/excessrate-mean-all-preds-1.png)<!-- -->
+![](README_files/figure-gfm/Figure-18-1.png)<!-- -->
+
+***Figure 18: Excess deaths\* per 100,000 of the total Danish population
+for the period 2020 Q1 - 2022 Q3 for stratified and non-stratified data
+depending on baseline reference period.** \*)Excess deaths in this plot
+are defined as the difference between deaths and the season adjusted
+baseline. Baseline reference period is indicated on the x-axis.*
