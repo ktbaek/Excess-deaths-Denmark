@@ -1,5 +1,5 @@
 Quarterly age and sex stratified death rates in Denmark from 2020 to
-2022 (WIP)
+2022 (*work in progress*)
 ================
 Kristoffer T. Bæk
 
@@ -498,8 +498,8 @@ baseline. Baseline reference period is indicated on the x-axis.*
     rates for a group are above the baseline but within the prediction
     interval for the whole period of 2020-22, it will not count as
     excess death, but may still be unusual for a three-year period. One
-    could instead compare excess deaths over a similar time span during
-    the reference period.
+    could instead compare deaths over a similar time span during the
+    reference period.
 -   Sensitivity analysis is specific for this method and this dataset.
     Other methods or datasets may be more or less sensitive to baseline
     choice or stratification.
