@@ -172,7 +172,7 @@ make_prediction <- function(df, pred, from, to, ...) {
   df %>%
     select(..., Year, YQ, Quarter, Population, Death_rate) %>%
     mutate(prediction = pred, YQ = zoo::as.yearqtr(YQ)) %>%
-    nest(all_data = -c(prediction, ...)) %>% # "all_data" is all data points from 2010-now
+    nest(all_data = -c(prediction, ...)) %>% # "all_data" is all data points from 2008-now
     full_join(make_base_df(df, from, to, ...), by = purrr::map_chr(enquos(...), rlang::as_label)) %>%
     mutate(
       # linear regression (= model)
@@ -978,3 +978,9 @@ all_preds %>%
 ```
 
 ***Figure 18: Excess deaths\* per 100,000 of the total Danish population for the period 2020 Q1 - 2022 Q3 for stratified and non-stratified data depending on baseline reference period.** \*)Excess deaths in this plot are defined as the difference between  deaths and the season adjusted baseline. Baseline reference period is indicated on the x-axis.*
+
+## Limitations
+
+- Excess deaths by quarter (or shorter intervals) may underestimate excess deaths over longer time periods. For example if the death rates for a group are  above the baseline but within the prediction interval for the whole period of 2020-22, it will not count as excess death, but may still be unusual for a three-year period. One could instead compare excess deaths over a similar time span during the reference period.
+- Sensitivity analysis is specific for this method and this dataset. Other methods or datasets may be more or less sensitive to baseline choice or stratification.
+- ...
