@@ -5,15 +5,14 @@ Kristoffer T. Bæk
 
 ## Summary
 
-In this analysis, I calculated age and sex stratified death rates
-(deaths per population size) for each quarter during the Covid-19
-pandemic in Denmark (2020 Q1 to, so far, 2022 Q3) and compared them to
-different baselines. The baselines were established by linear regression
-followed by adjustment for seasonality. Excess deaths were defined as
-deaths exceeding a prediction interval around the season adjusted
-baselines. This analysis therefore takes into account both long term
-trends, age composition, and seasonality. With this method, I find 81
-and 62 excess deaths per 100,000 (\~4800 and \~3700 excess deaths,
+I calculated age and sex stratified death rates for each quarter during
+the Covid-19 pandemic in Denmark (2020 Q1 to, so far, 2022 Q3) and
+compared them to different baselines. The baselines were established by
+linear regression followed by adjustment for seasonality. Excess deaths
+were defined as deaths exceeding a prediction interval around the season
+adjusted baselines. This analysis therefore takes into account both long
+term trends, age composition, and seasonality. With this method, I find
+81 and 62 excess deaths per 100,000 (\~4800 and \~3700 excess deaths,
 respectively) from 2020 Q1 to 2022 Q3 using the 2010-2019 and 2015-2019
 baseline, respectively. Finally, I explored how sensitive the result is
 to choice of baseline (using 2008-19, 2009-19, 2010-19, 2011-19,
@@ -193,17 +192,16 @@ reference periods to establish baselines, a 10-year period from 2010 to
 2019 and 5-year period from 2015 to 2019. To establish baselines, I used
 linear regressions.
 
-The figure below shows the quarterly death rates for each group from
-2010-2022 Q3. For most age groups, the 2010-19 baseline describes the
-death-rate trend very well. For the age group 70-79, however, it looks
-like the decreasing trend from 2010 to 2019 may be flattening towards
-the end of the period, highlighting the importance of baseline choice
-(as shown in Figure @ref(fig:excess-both-bases-age-sex) the choice for
-this age group has a large impact). For the males in the age-groups
-10-19 and 30-39, the two baselines differ greatly, which may be caused
-by a combination of large variation and outliers skewing the 2015-19
-baselines. These groups, however, only contribute little to the overall
-excess death rate.
+Figure 2 shows the quarterly death rates for each group from 2010-2022
+Q3. For most age groups, the 2010-19 baseline describes the death-rate
+trend very well. For the age group 70-79, however, it looks like the
+decreasing trend from 2010 to 2019 may be flattening towards the end of
+the period, highlighting the importance of baseline choice (as shown in
+Figure 10 the choice for this age group has a large impact). For the
+males in the age-groups 10-19 and 30-39, the two baselines differ
+greatly, which may be caused by a combination of large variation and
+outliers skewing the 2015-19 baselines. These groups, however, only
+contribute little to the overall excess death rate.
 
 ![**Death rates and baselines.** Quarterly death rates (deaths per 1000
 people) for each age and sex group from 2010 to 2022 Q3 (colored lines).
@@ -226,7 +224,7 @@ Deaths in Denmark follow a seasonal pattern, which is primarily caused
 by seasonality in the death rates among the older age-groups (which
 contributes the majority of deaths in the total population), whereas
 deaths among the younger age groups do not exhibit significant
-seasonality (Figure @ref(fig:seasonality-10y-sex)).
+seasonality (Figure 3).
 
 ![**Seasonal deviation from linear baselines (using the 2010-19
 reference period).** The colored lines show the relative (%) deviation
@@ -247,16 +245,14 @@ To better interpret how much the death rates during the pandemic deviate
 from the baselines, I established season adjusted baselines and a 95%
 prediction interval (calculated as 1.96
 ![\\times](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Ctimes "\times")
-standard deviation) based on the quarter-specific variation shown in
-Figure @ref(fig:seasonality-10y-sex). The prediction interval thus
-reflects the expected variation around the season adjusted baseline
-based on the observed pre-pandemic variation. Note, that it is here
-assumed that the expected seasonal variation is proportional to the
-linear baseline value within each stratification group (the 40-49yo age
-group in Figure @ref(fig:sab-10y-sex-norm) exemplifies this). Figures
-@ref(fig:sab-10y-sex-base1) and @ref(fig:sab-10y-sex-base2) show the
-death rates for each age and sex group together with the season adjusted
-baselines.
+standard deviation) based on the quarter-specific variation shown for
+2010-19 in Figure 3. The prediction interval thus reflects the expected
+variation around the season adjusted baseline based on the observed
+pre-pandemic variation. Note, that it is here assumed that the expected
+seasonal variation is proportional to the linear baseline value within
+each stratification group (the 40-49yo age group in Figure 6 exemplifies
+this). Figures 4 and 5 show the death rates for each age and sex group
+together with the season adjusted baselines.
 
 ![**Quarterly death rates and season adjusted baselines using 2010-19 as
 reference period.** Colored lines indicate the quarterly death rates,
@@ -282,10 +278,10 @@ death rates, black lines indicate the season adjusted baselines, and the
 gray band indicate the 95% prediction interval. Sex is indicated on top,
 age on the right.*
 
-In the following figures (Figure @ref(fig:sab-10y-sex-norm) and
-@ref(fig:sab-10y-sex-norm-covid)), I show the difference between the
-observed death rates and the expected season adjusted death rates
-(![\\Delta](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5CDelta "\Delta")death
+In the following figures (Figure 6 and 7), I show the difference between
+the observed death rates and the expected season adjusted death rates
+(called
+![\\Delta](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5CDelta "\Delta")death
 rates), effectively de-trending and de-seasonalizing the death rates and
 baselines.
 
@@ -331,13 +327,10 @@ variation in the baseline period for each quarter-type). Excess deaths
 are back-calculated from the excess death rates using the age and sex
 stratified quarterly population numbers.
 
-Figure @ref(fig:excess-both-bases-quarter-age) and Table
-@ref(tab:excess-table) shows quarterly excess deaths stratified on age,
-Figure @ref(fig:excess-both-bases-quarter-sex) shows quarterly excess
-deaths stratified on sex, Figure @ref(fig:excess-both-bases-age-sex)
-shows excess deaths for the whole period per age group, and Figure
-@ref(fig:excessrate-both-bases-year) shows excess deaths per 100,000 of
-the entire population per year.
+Figure 8, 9 and Table 1 show quarterly excess deaths stratified on age
+and sex, Figure 10 shows excess deaths for the whole period per age
+group, and Figure 11 shows excess deaths per 100,000 of the entire
+population per year.
 
 ![**Excess deaths by age and quarter.** Excess deaths are defined as
 deaths exceeding the season adjusted baseline +/- the 95% prediction
@@ -400,8 +393,8 @@ the population at the start of each quarter.*
 ### Sensitivity to baseline
 
 To explore the sensitivity to choice of baseline, I have calculated the
-total excess death rate for seven different baselines (Figure
-@ref(fig:excessrate-more-bases-10y-sex)).
+total excess death rate using the above method for nine different
+baselines based on different reference periods (Figure 12).
 
 ![**Excess deaths for the period 2020 Q1 - 2022 Q3 depending on baseline
 reference period.** Excess deaths are defined as deaths exceeding the
@@ -435,6 +428,9 @@ the vertical gray line indicates the border between reference period and
 pandemic period. Age group is indicated on the right.*
 
 ### Sensitivity to stratification
+
+To explore the sensitivity to the choice of stratification, I first used
+5-year age instead of 10-year age bins (Figure 14-16).
 
 ![**De-trended/de-seasonalized quarterly death rates and baselines using
 5-year age brackets.** (A) Baseline reference period 2010-19, and (B)
