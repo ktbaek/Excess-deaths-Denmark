@@ -410,6 +410,13 @@ in a given quarter. Baseline period is indicated on the x-axis. (A)
 Excess deaths per 100,000 of the total Danish population, and (B) excess
 deaths stratified by age.*
 
+The choice of reference period for the baseline has a considerable
+impact on the amount of excess death. Most of the difference between
+baselines is driven by the 70-79 age group, except for the low rate of
+excess deaths found using the 2014-19 baseline – a clear outlier – which
+is driven by the 80-89 age group. Figure 13 explores the baselines for
+these two age groups.
+
 ![**De-trended/de-seasonalized death rates and baselines for older age
 groups using different baseline reference periods.** Colored lines
 indicate the quarterly death rates for males (blue lines) and females
@@ -430,7 +437,7 @@ pandemic period. Age group is indicated on the right.*
 ### Sensitivity to stratification
 
 To explore the sensitivity to the choice of stratification, I first used
-5-year age instead of 10-year age bins (Figure 14-16).
+5-year instead of 10-year age bins (Figure 14-16).
 
 ![**De-trended/de-seasonalized quarterly death rates and baselines using
 5-year age brackets.** (A) Baseline reference period 2010-19, and (B)

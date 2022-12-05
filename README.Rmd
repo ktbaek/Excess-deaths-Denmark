@@ -679,6 +679,8 @@ p2 <- preds_more %>%
 
 ***Figure 12: Excess deaths for the period 2020 Q1 - 2022 Q3 depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter. Baseline period is indicated on the x-axis. (A) Excess deaths per 100,000 of the total Danish population, and (B) excess deaths stratified by age.*
 
+The choice of reference period for the baseline has a considerable impact on the amount of  excess death. Most of the difference between baselines is driven by the 70-79 age group, except for the low rate of excess deaths found using the 2014-19 baseline -- a clear outlier -- which is driven by the 80-89 age group. Figure 13 explores the baselines for these two age groups. 
+
 ```{r Figure-13, echo=FALSE, fig.asp=0.5, layout="l-screen", fig.cap = "**De-trended/de-seasonalized death rates and baselines for older age groups using different baseline reference periods.** Colored lines indicate the quarterly death rates for males (blue lines) and females (red lines), black lines indicate the baselines, and the transparent colored bands indicate the 95% prediction intervals for males (blue) and females (red), and the vertical gray line indicates the border between reference period and pandemic period. Age group is indicated on the right. "}
 
 
@@ -698,7 +700,7 @@ preds_more %>%
   geom_line(aes(YQ, excess_rate_sab * 1000, color = Sex), size = .25) +
   scale_y_continuous(limits = c(NA, NA)) +
   zoo::scale_x_yearqtr(format = "%YQ%q", n = 3) +
-  labs(y = "Deaths per 1000") +
+  labs(y = expression(bold(Delta*"death rate (per 1000)"))) +
   scale_color_manual(values = colors_2) +
   scale_fill_manual(guide = "none", values = colors_2) +
   facet_theme +
@@ -715,7 +717,7 @@ preds_more %>%
 
 ### Sensitivity to stratification
 
-To explore the sensitivity to the choice of stratification, I first used 5-year age instead of 10-year age bins (Figure 14-16).
+To explore the sensitivity to the choice of stratification, I first used 5-year instead of 10-year age bins (Figure 14-16).
 
 
 
