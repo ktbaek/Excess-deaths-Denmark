@@ -2,7 +2,7 @@ library(tidyverse)
 library(magrittr)
 library(lubridate)
 
-source("code/make_death_rates.R")
+source("code/functions.R")
 
 pop_quarterly_10 <- c19dk::get_pop_by_breaks(data = "data/tidy_DST_pop.csv", age_breaks = c19dk::get_age_breaks(maxage = 90, agesplit = 10))
 
