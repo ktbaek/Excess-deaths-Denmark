@@ -356,8 +356,8 @@ interval is calculated. A broad interval will “normalize” all the
 pre-pandemic variation, whereas a narrower interval will normalize some
 (or none) of the pre-pandemic variation. The interval I have chosen
 (95%, 1.96 times standard deviation) normalizes “most” of the observed
-pre-pandemic variation. This is a subjective choice, and other choices
-can be valid.
+pre-pandemic variation (see Figure 6). This is a subjective choice that
+depends on what one aims to measure.
 
 Excess deaths are back-calculated from the excess death rates using the
 age and sex stratified quarterly population numbers.
