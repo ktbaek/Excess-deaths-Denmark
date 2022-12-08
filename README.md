@@ -510,11 +510,12 @@ Then, I tried other stratifications, namely 10- and 5-year age bins but
 without stratifying for sex, and a completely non-stratified dataset.
 The excess death rates for all baselines and stratifications are shown
 in Figure 17. To check how much of the differences are explained by
-calculating excess deaths as those exceeding an interval, I also
-calculated excess deaths compared to the mean season adjusted baseline
-itself (Figure 18) and found a bit less impact of stratification. So the
-impact of straficiation can be explained both by the prediction
-intervals and the baselines themselves.
+calculating excess deaths as those exceeding an interval,
+
+*Should be edited: I also calculated excess deaths compared to the mean
+season adjusted baseline itself (Figure 18) and found a bit less impact
+of stratification. So the impact of stratification can be explained both
+by the prediction intervals and the baselines themselves*
 
 ![**Excess deaths per 100,000 of the total Danish population for the
 period 2020 Q1 - 2022 Q3 for stratified and non-stratified data

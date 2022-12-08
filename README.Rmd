@@ -761,7 +761,9 @@ preds_5 %>%
 
 ***Figure 16: Excess deaths by age for the period 2020 Q1 - 2022 Q3 depending on baseline reference period using 5-year brackets.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter. Baseline period is indicated on the x-axis.*
 
-Then, I tried other stratifications, namely 10- and 5-year age bins but without stratifying for sex, and a completely non-stratified dataset. The excess death rates for all baselines and stratifications are shown in Figure 17. To check how much of the differences are explained by calculating excess deaths as those exceeding an interval, I also calculated excess deaths compared to the mean season adjusted baseline itself (Figure 18) and found a bit less impact of stratification. So the impact of straficiation can be explained both by the prediction intervals and the baselines themselves. 
+Then, I tried other stratifications, namely 10- and 5-year age bins but without stratifying for sex, and a completely non-stratified dataset. The excess death rates for all baselines and stratifications are shown in Figure 17. To check how much of the differences are explained by calculating excess deaths as those exceeding an interval, 
+
+*Should be edited: I also calculated excess deaths compared to the mean season adjusted baseline itself (Figure 18) and found a bit less impact of stratification. So the impact of stratification can be explained both by the prediction intervals and the baselines themselves* 
 
 ```{r calc-more-baselines-no-strata}
 # make predictions on non-stratified data
