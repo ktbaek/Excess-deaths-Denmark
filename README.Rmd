@@ -527,16 +527,22 @@ To explore how sensitive the result is  to choice of baseline, I have calculated
 
 ```{r calc-more-baselines-10y-sex}
 # make more predictions
-preds_more <- 
-  make_prediction(death_rates_10, "2008-19", 2008, 2019, z, Age, Sex) %>%
-  bind_rows(make_prediction(death_rates_10, "2009-19", 2009, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2010-19", 2010, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2011-19", 2011, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2012-19", 2012, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2013-19", 2013, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2014-19", 2014, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2015-19", 2015, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2016-19", 2016, 2019, z, Age, Sex)) 
+
+make_more_preds <- function(df, z, ...) {
+  # Helper function
+  make_prediction(df, "2008-19", 2008, 2019, z, ...) %>%
+    bind_rows(make_prediction(df, "2009-19", 2009, 2019, z, ...)) %>%
+    bind_rows(make_prediction(df, "2010-19", 2010, 2019, z, ...)) %>%
+    bind_rows(make_prediction(df, "2011-19", 2011, 2019, z, ...)) %>%
+    bind_rows(make_prediction(df, "2012-19", 2012, 2019, z, ...)) %>%
+    bind_rows(make_prediction(df, "2013-19", 2013, 2019, z, ...)) %>%
+    bind_rows(make_prediction(df, "2014-19", 2014, 2019, z, ...)) %>%
+    bind_rows(make_prediction(df, "2015-19", 2015, 2019, z, ...)) %>%
+    bind_rows(make_prediction(df, "2016-19", 2016, 2019, z, ...)) 
+
+}
+
+preds_more <- make_more_preds(death_rates_10, z, Age, Sex)
 ```
 
 ```{r Figure-12, echo=FALSE, layout = "l-body_outset", fig.asp=1.1, fig.cap = "**Excess deaths for the period 2020 Q1 - 2022 Q3 depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter. Baseline period is indicated on the x-axis. (A) Excess deaths per 100,000 of the total Danish population, and (B) excess deaths stratified by age."}
@@ -610,7 +616,7 @@ preds_more %>%
   geom_line(aes(YQ, (fit  - fit) * 1000), size = .15) +
   geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000), fill = "gray75", alpha = 0.5) +
   geom_vline(xintercept = 2019.88, size = 0.2, color = "gray70") +
-  geom_line(aes(YQ, excess_rate_sab * 1000), color = colors_2[2], size = .25) +
+  geom_line(aes(YQ, (Death_rate - fit) * 1000), color = colors_2[2], size = .25) +
   scale_y_continuous(limits = c(NA, NA)) +
   zoo::scale_x_yearqtr(format = "%YQ%q", n = 3) +
   labs(y = expression(bold(Delta*"death rate (per 1000)"))) +
@@ -642,16 +648,7 @@ death_rates_5$Age <- factor(death_rates_5$Age, levels = c(
   "80-84", "85-89", "90-94", "95+"
 ))
 
-preds_5 <- 
-  make_prediction(death_rates_5, "2008-19", 2008, 2019, z, Age, Sex) %>% 
-  bind_rows(make_prediction(death_rates_5, "2009-19", 2009, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2010-19", 2010, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2011-19", 2011, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2012-19", 2012, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2013-19", 2013, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2014-19", 2014, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2015-19", 2015, 2019, z, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2016-19", 2016, 2019, z, Age, Sex))
+preds_5 <- make_more_preds(death_rates_5, z, Age, Sex)
 ```
 
 ```{r Figure-14, echo=FALSE, fig.asp=2.5, layout="l-page", fig.cap = "**De-trended/de-seasonalized quarterly death rates and  baselines using 5-year age brackets.** (A) Baseline reference period 2010-19, and (B) baseline reference period 2015-19. Colored lines indicate the quarterly death rates, black lines indicate the baselines, and the gray bands indicate the 95% prediction intervals. Sex is indicted on top, age on the right."}
@@ -768,46 +765,13 @@ Then, I tried other stratifications, namely 10- and 5-year age bins but without 
 ```{r calc-more-baselines-no-strata}
 # make predictions on non-stratified data
 death_rates_ns <- read_csv("data/death_rates_no_strata.csv")
+preds_no_strata <- make_more_preds(death_rates_ns, z)
 
-preds_no_strata <- 
-  make_prediction(death_rates_ns, "2008-19", 2008, 2019, z) %>%
-  bind_rows(make_prediction(death_rates_ns, "2009-19", 2009, 2019, z)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2010-19", 2010, 2019, z)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2011-19", 2011, 2019, z)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2012-19", 2012, 2019, z)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2013-19", 2013, 2019, z)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2014-19", 2014, 2019, z)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2015-19", 2015, 2019, z)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2016-19", 2016, 2019, z)) 
-```
-
-
-```{r calc-more-bases-ages-no-sex}
-# make age stratified predictions
+# make more age stratified predictions
 death_rates_5a <- read_csv("data/death_rates_5y_age.csv")
 death_rates_10a <- read_csv("data/death_rates_10y_age.csv")
-
-preds_5_no_sex <- 
-  make_prediction(death_rates_5a, "2008-19", 2008, 2019, z, Age) %>% 
-  bind_rows(make_prediction(death_rates_5a, "2009-19", 2009, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2010-19", 2010, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2011-19", 2011, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2012-19", 2012, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2013-19", 2013, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2014-19", 2014, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2015-19", 2015, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2016-19", 2016, 2019, z, Age))
-
-preds_10_no_sex <- 
-  make_prediction(death_rates_10a, "2008-19", 2008, 2019, z, Age) %>% 
-  bind_rows(make_prediction(death_rates_10a, "2009-19", 2009, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2010-19", 2010, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2011-19", 2011, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2012-19", 2012, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2013-19", 2013, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2014-19", 2014, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2015-19", 2015, 2019, z, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2016-19", 2016, 2019, z, Age))
+preds_5_no_sex <- make_more_preds(death_rates_5a, z, Age)
+preds_10_no_sex <- make_more_preds(death_rates_10a, z, Age)
 ```
 
 ```{r collect-all-predictions, echo=FALSE}
@@ -820,8 +784,6 @@ excess_whole_pop <- function(df,  ...) {
   group_by(..., prediction) %>%
   summarize(
     excess_abs = sum(excess_abs),
-    excess_abs_sab = sum(excess_abs_sab),
-    excess_abs_lb = sum(excess_abs_lb),
     Pop_total = mean(Pop_total, na.rm = TRUE)
   ) 
 }
@@ -876,18 +838,53 @@ all_preds %>%
 ***Figure 17: Excess deaths per 100,000 of the total Danish population for the period 2020 Q1 - 2022 Q3 for stratified and non-stratified data depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction in a given quarter. Baseline reference period is indicated on the x-axis.*
 
 ```{r Figure-18,  fig.asp=0.5,  echo=FALSE, layout="l-body_outset"}
-all_preds %>%
+
+preds_more <- make_more_preds(death_rates_10, 0, Age, Sex)
+preds_5 <- make_more_preds(death_rates_5, 0, Age, Sex)
+preds_no_strata <- make_more_preds(death_rates_ns, 0)
+preds_5_no_sex <- make_more_preds(death_rates_5a, 0, Age)
+preds_10_no_sex <- make_more_preds(death_rates_10a, 0, Age)
+
+preds_strata_10 <- preds_more %>%
+  excess_whole_pop() %>%  
+  mutate(stratification = "Age (10y) & Sex")
+
+preds_strata_5 <- preds_5 %>%
+  excess_whole_pop() %>% 
+  mutate(stratification = "Age (5y) & Sex")
+
+preds_strata_10_ns <- preds_10_no_sex %>%
+  excess_whole_pop() %>% 
+  mutate(stratification = "Age (10y)")
+
+preds_strata_5_ns <- preds_5_no_sex %>%
+  excess_whole_pop() %>% 
+  mutate(stratification = "Age (5y)")
+
+all_preds <- preds_no_strata %>%
+  excess_whole_pop() %>% 
+  mutate(stratification = "Non-stratified") %>% 
+  bind_rows(
+    preds_strata_10,
+    preds_strata_10_ns,
+    preds_strata_5,
+    preds_strata_5_ns
+    )
+
+
+all_preds %>% 
   ggplot() +
-  geom_bar(stat = "identity", position = "dodge", aes(prediction, excess_abs_sab / Pop_total * 100000, fill = stratification), width = 0.9) +
+  geom_bar(stat = "identity", position = "dodge", aes(prediction, excess_abs / Pop_total * 100000, fill = stratification), width = 0.9) +
   scale_y_continuous(limits = c(NA, NA), labels = scales::number) +
   scale_fill_manual(values = colors_16) +
   labs(
-    y = "Deaths over baseline mean per 100,000",
+    y = "Excess deaths per 100,000",
     x = "Baseline reference period"
   ) +
   theme(
     axis.text.x = element_text(size = rel(1)),
     axis.text.y = element_text(size = rel(1.1)),
+    axis.title.y = element_text(size = rel(1.2)),
     axis.title.x = element_text(face = "bold", size = rel(1)),
     panel.grid.minor.x = element_blank(),
     legend.text = element_text(size = 10),
