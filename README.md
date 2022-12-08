@@ -359,7 +359,7 @@ pre-pandemic variation, whereas a narrower interval will normalize some
 pre-pandemic variation (see Figure 6). This is a subjective choice that
 depends on what one aims to measure.
 
-Excess deaths are back-calculated from the excess death rates using the
+Excess deaths were back-calculated from the excess death rates using the
 age and sex stratified quarterly population numbers.
 
 Figure 8 and 9 show quarterly excess deaths stratified on age and sex,

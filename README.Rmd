@@ -377,7 +377,7 @@ p2 <- preds %>%
 
 Here, I define excess deaths as deaths that exceed the season adjusted baseline +/- the prediction interval (thus excess deaths can be both a positive and negative number) for a given  group in a given quarter. It should be kept in mind that the excess death rates resulting from this method depends strongly on, among other things, how the prediction interval is calculated. A broad interval  will "normalize" all the pre-pandemic variation, whereas a narrower interval will normalize some (or none) of the pre-pandemic variation. The interval I have chosen (95%, 1.96 times standard deviation) normalizes "most" of the observed pre-pandemic variation (see Figure 6). This is a subjective choice that depends on what one aims to measure.
 
-Excess deaths are back-calculated from the excess death rates using the age and sex stratified quarterly population numbers. 
+Excess deaths were back-calculated from the excess death rates using the age and sex stratified quarterly population numbers. 
 
 Figure 8 and  9  show quarterly excess deaths stratified on age and sex,  Figure 10 shows excess deaths for the whole period per age group, and Figure  11 shows excess deaths per 100,000 of the entire population per year.
 
