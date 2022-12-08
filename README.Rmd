@@ -896,7 +896,12 @@ all_preds %>%
 
 ## Discussion and limitations
 
-In this analysis, I have examined the mortality rates in Denmark during the Covid-19 pandemic by quarter, age, and sex, and compared  the rates to pre-pandemic baseline rates using a very simple model. The simplicity of the model allows for transparency into the choices that impact how much excess mortality is observed during the pandemic. These choices include choice of the reference period, choice of stratification, and choice of threshold for normal variability. The sensitivity analysis is specific for this method and this dataset. Other methods or datasets may be more or less sensitive to e.g. baseline choice or stratification.
+In this analysis, I have examined the mortality rates in Denmark during the Covid-19 pandemic by quarter, age, and sex, and compared  the rates to pre-pandemic baseline rates using a very simple model. The simplicity allows for transparency into the model choices that impact how much excess mortality is measured during the pandemic. These choices include choice of the reference period, choice of stratification, and choice of threshold for normal variability. The sensitivity analysis is specific for this method and this dataset. Other methods or datasets may be more or less sensitive to e.g. baseline choice or stratification.
+
+- Affected age groups over time during the pandemic. 
+- Reference period matters a lot. The best reference period may not be the same across age groups. Depends on linearity of trend and the occurence of special years with high or low mortality affecting age groups differently. 
+- Stratification matters somewhat.
+- What is normal?
 
 - Excess deaths by quarter (or shorter intervals) may underestimate excess deaths over longer time periods. For example if the death rates for a group are  above the baseline but within the prediction interval for the whole period of 2020-22, it will not count as excess death, but may still be unusual for a three-year period. One could instead compare deaths over a similar time span during the reference period.
 

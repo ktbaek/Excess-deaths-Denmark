@@ -535,12 +535,21 @@ baseline. Baseline reference period is indicated on the x-axis.*
 In this analysis, I have examined the mortality rates in Denmark during
 the Covid-19 pandemic by quarter, age, and sex, and compared the rates
 to pre-pandemic baseline rates using a very simple model. The simplicity
-of the model allows for transparency into the choices that impact how
-much excess mortality is observed during the pandemic. These choices
-include choice of the reference period, choice of stratification, and
-choice of threshold for normal variability. The sensitivity analysis is
-specific for this method and this dataset. Other methods or datasets may
-be more or less sensitive to e.g. baseline choice or stratification.
+allows for transparency into the model choices that impact how much
+excess mortality is measured during the pandemic. These choices include
+choice of the reference period, choice of stratification, and choice of
+threshold for normal variability. The sensitivity analysis is specific
+for this method and this dataset. Other methods or datasets may be more
+or less sensitive to e.g. baseline choice or stratification.
+
+-   Reference period matters a lot. The best reference period may not be
+    the same across age groups. Depends on linearity of trend and the
+    occurence of special years with high or low mortality affecting age
+    groups differently.
+
+-   Stratification
+
+-   What is normal?
 
 -   Excess deaths by quarter (or shorter intervals) may underestimate
     excess deaths over longer time periods. For example if the death
