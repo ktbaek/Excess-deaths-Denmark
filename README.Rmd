@@ -1,5 +1,5 @@
 ---
-title: "Quarterly age and sex stratified death rates in Denmark from 2020 to 2022 (*work in progress*)"
+title: "Quarterly death rates in Denmark by age and sex, 2020-2022 (*work in progress*)"
 author: "Kristoffer T. Bæk"
 output:
   rmarkdown::github_document:
@@ -61,7 +61,7 @@ colors_16 <- c(colorspace::lighten("#999999", 0.4), "#999999",
 
 ## Summary
 
-I calculated age and sex stratified death rates for each quarter during the Covid-19 pandemic in Denmark (2020 Q1 to, so far, 2022 Q3) and compared them to different baselines. The baselines were established by linear regression followed by adjustment for seasonality. Excess deaths were defined as deaths exceeding a prediction interval around the season adjusted baselines. This analysis therefore takes into account both long term trends, age composition, and seasonality. With this method, I find 81 and 62 excess deaths per 100,000 (~4800 and ~3700 excess deaths, respectively) from 2020 Q1 to 2022 Q3 using the 2010-2019 and 2015-2019 baseline, respectively. Finally, I explored how sensitive the result is to choice of baseline (using 2008-19, 2009-19, 2010-19, 2011-19, 2012-19, 2013-19, 2014-19, 2015-19, and 2016-19 as reference periods) and choice of data stratification (varying age bin size and sex stratification), testing 45 combinations in total. 
+I calculated age and sex stratified death rates for each quarter during the Covid-19 pandemic in Denmark (2020 Q1 to, so far, 2022 Q3) and compared them to different pre-pandemic baselines. The baselines were established by linear regression followed by adjustment for seasonality. This analysis therefore takes into account both long-term trends, age composition, and seasonality. Excess deaths were defined as deaths exceeding a 95% prediction interval around the season adjusted baselines. Using this method, I found 81 and 62 excess deaths per 100,000 (~4800 and ~3700 excess deaths, respectively) from 2020 Q1 to 2022 Q3 using the 2010-2019 and 2015-2019 baseline, respectively. Finally, I explored how sensitive the result is to choice of baseline (using 2008-19, 2009-19, 2010-19, 2011-19, 2012-19, 2013-19, 2014-19, 2015-19, and 2016-19 as reference periods) and choice of data stratification (varying age bin size and sex stratification), testing 45 combinations in total. 
 
 ## Methods
 
@@ -75,13 +75,15 @@ The death rate for a given population group in a given quarter is here defined a
 
 ### Baselines
 
-Baselines were established in two steps. First, I used linear regression on quarterly death rates for a given reference period (e.g. 2010-2019) to establish linear baselines. Then, season adjusted baselines were calculated using the formulas below. Basically, I calculated the mean relative deviation ($\overline {rd_Q}$) from the linear baseline for each quarter-type, *Q* (1, 2, 3, or 4) for the reference years (*i*), and calculated the season adjusted baseline, $baseline_{s}$, as the linear baseline value plus the product of $\overline {rd_Q}$ and the linear baseline value. 
+Baselines were established in two steps. First, I used linear regression on quarterly death rates for a given reference period (e.g. 2010-2019) to establish linear baselines. Then, season adjusted baselines were calculated using the relative deviations (*RD*) from the linear baselines with the formulas below. Basically, I calculated the mean relative deviation, MRD, from the linear baseline for each quarter-type, *Q* (1, 2, 3, or 4) for the reference years (*i*), and calculated the season adjusted baseline, *baseline<sub>s</sub>*, as the linear baseline value plus the product of MRD and the linear baseline value. 
 
 The 95% prediction interval *PI* was calculated as the season adjusted baseline value +/- 1.96 times the relative standard deviation for each quarter-type *Q* multiplied by the linear baseline value. 
 
-$$\overline {rd_Q} = \frac{1}{N}\sum_{i=1}^{N} \frac{residual_{i,Q}}{baseline_{i,Q}}$$
-$$baseline_{s \space i,Q} = baseline_{i,Q} + baseline_{i,Q} \times \overline {rd_Q} $$
-$$PI_{i,Q} = baseline_{s \space i,Q} \pm baseline_{i,Q} \times 1.96 \times {SD_Q} $$
+$$MRD_Q = \frac{1}{N}\sum_{i=1}^{N} \frac{residual_{i,Q}}{baseline_{i,Q}}$$
+$$baseline_{s(i,Q)} = baseline_{i,Q} \times (1 + MRD_{Q})$$
+$$SD_Q = \sqrt{\frac{1}{N-1}\sum_{i=1}^{N} (RD_{i,Q} - MRD_Q)^2}$$
+
+$$PI_{i,Q} = baseline_{s(i,Q)} \pm baseline_{i,Q} \times 1.96 \times {SD_Q} $$
 
 ### Excess deaths
 
@@ -92,115 +94,24 @@ Excess death rates were defined as death rates exceeding the season adjusted bas
 
 All data manipulations and calculations were performed in R.
 
-```{r, main-functions, echo=TRUE}
-# Main functions ---------------------------------------------------------------
-make_base_df <- function(df, from, to, ...) {
-  #' Helper function that makes nested data frame with death rates for the baseline period
-  #' @param df Data frame with death rates
-  #' @param from Baseline period start year
-  #' @param to Baseline period end year
-  #' @param ... Stratification variables
-  #' @return Nested data frame
-  df %>%
-    select(..., Year, YQ, Quarter, Death_rate) %>%
-    mutate(YQ = zoo::as.yearqtr(YQ)) %>% 
-    filter(
-      Year >= from,
-      Year <= to
-    ) %>%
-    nest(base_data = -c(...))
-}
-
-calc_quart_stats <- function(df) {
-  #' Helper function that calculates mean, SD, and prediction intervals 
-  #' relative to baseline by quarter-type (1,2,3 or 4)
-  #' @param df Data frame with death rates and fitted baseline for baseline period
-  #' @return Data frame
-  df %>%
-    group_by(Quarter) %>%
-    summarize(
-      mean_Q = mean(.resid / .fitted),
-      sd_Q = sd(.resid / .fitted),
-      conf_lo_Q = mean_Q - 1.96 * sd_Q,
-      conf_hi_Q = mean_Q + 1.96 * sd_Q
-    )
-}
-
-calc_excess <- function(df1, df2) {
-  #' Helper function that calculates season adjusted baselines, excess deaths 
-  #' and excess death rates
-  #' @param df1 Data frame with outputs from calc_quart_stats()
-  #' @param df2 Data frame with death rates and fitted baseline for all years
-  #' @return Data frame
-  df2 %>%
-    left_join(df1, by = c("Quarter")) %>%
-    # use the relative mean deviation and sd calculated for each quarter type to
-    # calculate quarter adjusted fit and prediction interval
-    mutate(
-      fit = .fitted + mean_Q * .fitted,
-      sd = sd_Q * .fitted,
-      conf_lo = .fitted + .fitted * conf_lo_Q,
-      conf_hi = .fitted + .fitted * conf_hi_Q,
-      z = (Death_rate - fit) / sd,
-      # calculate excess death rate as death rates exceeding quarterly adjusted fit +/- pred interval
-      excess_rate = case_when(
-        Death_rate > conf_hi ~ Death_rate - conf_hi,
-        Death_rate < conf_lo ~ Death_rate - conf_lo,
-        TRUE ~ 0
-      ),
-      # calculate excess death rate as death rates exceeding either the
-      # quarterly adjusted or the linear fit
-      excess_rate_sab = Death_rate - fit,
-      excess_rate_lb = Death_rate - .fitted,
-      # calculate excess deaths as above, but multiplying the rates by population
-      excess_abs = excess_rate * Population,
-      excess_abs_sab = excess_rate_sab * Population,
-      excess_abs_lb = excess_rate_lb * Population
-    ) %>%
-    select(fit, sd, conf_lo, conf_hi, z, excess_rate, excess_rate_sab, excess_rate_lb, 
-           excess_abs, excess_abs_sab, excess_abs_lb)
-}
-
-make_prediction <- function(df, pred, from, to, ...) {
-  #' Function that calculates baselines and excess deaths
-  #' @param df Data frame with death rates
-  #' @param pred String with name for the baseline
-  #' @param from Baseline period start year
-  #' @param to Baseline period end year
-  #' @param ... Stratification variables
-  #' @return Nested data frame
-  df %>%
-    select(..., Year, YQ, Quarter, Population, Death_rate) %>%
-    mutate(prediction = pred, YQ = zoo::as.yearqtr(YQ)) %>%
-    nest(all_data = -c(prediction, ...)) %>% # "all_data" is all data points from 2008-now
-    full_join(make_base_df(df, from, to, ...), by = purrr::map_chr(enquos(...), rlang::as_label)) %>%
-    mutate(
-      # linear regression (= model)
-      model = purrr::map(base_data, ~ lm(Death_rate ~ YQ, data = .x)),
-      # fit and residuals on all data
-      predict = purrr::map2(model, all_data, ~ broom::augment(.x, newdata = .y)),
-      # fit and residuals on baseline data only
-      predict_base = purrr::map2(model, base_data, ~ broom::augment(.x, newdata = .y)),
-      # quarterly SDs and means
-      qstats = purrr::map(predict_base, ~ calc_quart_stats(.x)),
-      # season adjusted baselines, CI and excess deaths
-      excess = purrr::map2(qstats, predict, ~ calc_excess(.x, .y))
-    )
-}
+```{r, main-functions, code = readLines("code/functions.R"), echo=TRUE}
 ```
 
 ## Results
 
 ### Death rates and linear baselines
 
+```{r set_z}
+z = 1.96
+```
 
 ```{r make-10y-sex-preds}
 # make age (10y bins) and sex stratified predictions using 2010-19 and 2015-19 as baselines
 death_rates_10 <- read_csv("data/death_rates_10y_age_sex.csv") %>% 
   mutate(YQ = zoo::as.yearqtr(YQ))
   
-preds <- make_prediction(death_rates_10, "2010-19", 2010, 2019, Age, Sex) %>%
-  bind_rows(make_prediction(death_rates_10, "2015-19", 2015, 2019, Age, Sex))
+preds <- make_prediction(death_rates_10, "2010-19", 2010, 2019, z, Age, Sex) %>%
+  bind_rows(make_prediction(death_rates_10, "2015-19", 2015, 2019, z, Age, Sex))
 ```
 
 
@@ -335,7 +246,7 @@ preds %>%
 
 ***Figure 3: Seasonal deviation from linear baselines (showed for 2010-19 reference period).** The colored lines show the relative (%) deviation from the linear baseline for each year from 2010-19. Black dots indicate the mean relative deviation for each quarter and vertical lines indicate the standard deviation of the relative deviations. The gray bands indicate the derived prediction intervals.*
 
-To better interpret how much the death rates during the pandemic deviate from the baselines, I established season adjusted baselines and a 95% prediction interval (calculated as 1.96 $\times$ standard deviation) based on the quarter-specific variation (shown for 2010-19 in Figure 3). The season adjusted baseline thus reflects the expected seasonal variation around the linear baseline, and the prediction interval reflects the expected variation around the season adjusted baseline, both based on the observed pre-pandemic variation in the reference period. Note, that I assume the expected variation to be proportional to the linear baseline value within each stratification group (the 40-49yo age group in Figure 6 exemplifies this). Figures 4 and 5 show the death rates for each age and sex group together with the season adjusted baselines.
+To better interpret how much the death rates during the pandemic deviate from the baselines, I established season adjusted baselines and a 95% prediction interval (calculated as 1.96 $\times$ standard deviation) based on the quartertype (1, 2, 3, or 4)-specific mean deviation from the linear baseline and the variation around the mean, respectively (shown for 2010-19 in Figure 3). The season adjusted baseline thus reflects the expected seasonal variation around the linear baseline, and the prediction interval reflects the expected residual variation around the season adjusted baseline, both directly based on the observed variation in the chosen reference period. Note, that I assume the expected seasonal and residual variation to be proportional to the linear baseline value within each stratification group. Figures 4 and 5 show the death rates for each age and sex group together with the season adjusted baselines.
 
 ```{r Figure-4, echo=FALSE, fig.asp=1.3, layout="l-page", fig.cap = "**Quarterly death rates and season adjusted baselines using  2010-19 as reference period.** Colored lines indicate the quarterly death rates, black lines indicate the season adjusted baselines, and the gray band indicate the 95% prediction interval. Sex is indicated on top, age on the right."}
 
@@ -384,7 +295,7 @@ preds %>%
 
 ***Figure 5: Quarterly death rates and season adjusted baselines using  2015-19 as reference period.** Colored lines indicate the quarterly death rates, black lines indicate the season adjusted baselines, and the gray band indicate the 95% prediction interval. Sex is indicated on top, age on the right.*
 
-In the following figures (Figure 6 and 7), I show the difference between the observed death rates and season adjusted baselines (called $\Delta$death rates), effectively de-trending and de-seasonalizing the death rates and baselines.
+In the following figures (Figure 6 and 7), I show the difference between the observed death rates and season adjusted baselines (here called $\Delta$death rates), in effect de-trending and de-seasonalizing the death rates and baselines.
 
 ```{r Figure-6, echo=FALSE, fig.asp=1.3, layout="l-page", fig.cap = "**De-trended/de-seasonalized quarterly death rates and  baselines.** (A) Baseline reference period 2010-19, and (B) baseline reference period 2015-19. Colored lines indicate the quarterly death rates, black lines indicate the baselines, and the gray bands indicate the 95% prediction intervals. Sex is indicted on top, age on the right."}
 
@@ -464,9 +375,11 @@ p2 <- preds %>%
 
 ### Summarizing excess deaths
 
-Here, I define excess deaths as deaths that exceed the season adjusted baseline +/- the prediction interval (thus excess deaths can be both a positive and negative number) for a given  group in a given quarter. It should be kept in mind that the excess death rates resulting from this method depends strongly on, among other things, how the prediction interval is defined. Excess deaths are back-calculated from the excess death rates using the age and sex stratified quarterly population numbers. 
+Here, I define excess deaths as deaths that exceed the season adjusted baseline +/- the prediction interval (thus excess deaths can be both a positive and negative number) for a given  group in a given quarter. It should be kept in mind that the excess death rates resulting from this method depends strongly on, among other things, how the prediction interval is calculated. A broad interval  will "normalize" all the pre-pandemic variation, whereas a narrower interval will normalize some (or none) of the pre-pandemic variation. The interval I have chosen (95%, 1.96 times standard deviation) normalizes "most" of the observed pre-pandemic variation. This is a subjective choice, and other choices can be valid.
 
-Figure 8, 9 and Table 1 show quarterly excess deaths stratified on age and sex,  Figure 10 shows excess deaths for the whole period per age group, and Figure  11 shows excess deaths per 100,000 of the entire population per year.
+Excess deaths are back-calculated from the excess death rates using the age and sex stratified quarterly population numbers. 
+
+Figure 8 and  9  show quarterly excess deaths stratified on age and sex,  Figure 10 shows excess deaths for the whole period per age group, and Figure  11 shows excess deaths per 100,000 of the entire population per year.
 
 
 ```{r calc-pop-total}
@@ -538,7 +451,7 @@ preds %>%
 
 ***Figure 9: Excess deaths by sex and quarter.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter.*
 
-```{r, excess-table, layout = "l-page"}
+```{r eval=FALSE, excess-table, include=FALSE}
 preds %>%
   unnest(c(predict, excess)) %>%
   filter(Year >= 2020) %>%
@@ -610,20 +523,20 @@ preds %>%
 
 ### Sensitivity to baseline
 
-To explore the sensitivity to choice of baseline, I have calculated the total excess death rate using the above method for nine different baselines based on different reference periods (Figure 12).
+To explore how sensitive the result is  to choice of baseline, I have calculated the total excess death rate using the above method for nine different baselines based on different reference periods (Figure 12).
 
 ```{r calc-more-baselines-10y-sex}
 # make more predictions
 preds_more <- 
-  make_prediction(death_rates_10, "2008-19", 2008, 2019, Age, Sex) %>%
-  bind_rows(make_prediction(death_rates_10, "2009-19", 2009, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2010-19", 2010, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2011-19", 2011, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2012-19", 2012, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2013-19", 2013, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2014-19", 2014, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2015-19", 2015, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_10, "2016-19", 2016, 2019, Age, Sex)) 
+  make_prediction(death_rates_10, "2008-19", 2008, 2019, z, Age, Sex) %>%
+  bind_rows(make_prediction(death_rates_10, "2009-19", 2009, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2010-19", 2010, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2011-19", 2011, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2012-19", 2012, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2013-19", 2013, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2014-19", 2014, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2015-19", 2015, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_10, "2016-19", 2016, 2019, z, Age, Sex)) 
 ```
 
 ```{r Figure-12, echo=FALSE, layout = "l-body_outset", fig.asp=1.1, fig.cap = "**Excess deaths for the period 2020 Q1 - 2022 Q3 depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter. Baseline period is indicated on the x-axis. (A) Excess deaths per 100,000 of the total Danish population, and (B) excess deaths stratified by age."}
@@ -679,14 +592,14 @@ p2 <- preds_more %>%
 
 ***Figure 12: Excess deaths for the period 2020 Q1 - 2022 Q3 depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter. Baseline period is indicated on the x-axis. (A) Excess deaths per 100,000 of the total Danish population, and (B) excess deaths stratified by age.*
 
-As can be seen in Figure 12, the choice of reference period for the baseline has a considerable impact on the amount of  excess death. Most of the difference between baselines is driven by the 70-79 age group, except for the low rate of excess deaths found using the 2014-19 baseline -- a clear outlier -- which is mainly driven by the 80-89 age group. Figure 13 shows the de-trended and de-seasonalized baselines for these two age groups. The large effect of reference period on the 70-79 age group's excess deaths seems to stem from the long-term trend deviating from a linear fit, whereas the low excess deaths for the 80-89 age group using the 2014-19 baseline is due to a high mortality year (2013) followed by a low mortality year (2014).
+As shown in Figure 12, the choice of reference period for the baseline has a significant impact on the number of excess deaths. Most of the difference between baselines is due to the 70-79 age group, with the exception of the low rate of excess deaths found using the 2014-19 baseline, which is mainly influenced by the 80-89 age group. Figure 13 shows the de-trended and de-seasonalized death rates and baselines for these two age groups (only males are shown for illustration). The large impact of the reference period on the excess deaths in the 70-79 age group appears to be due to the deviation of the long-term trend from a linear fit (as mentioned above), while the low number of excess deaths in the 80-89 age group using the 2014-19 baseline is due to a high mortality year (2013, mainly Q1) followed immediately by a low mortality year (2014).
 
 ```{r Figure-13, echo=FALSE, fig.asp=0.5, layout="l-screen", fig.cap = "**De-trended/de-seasonalized death rates and baselines for older age groups using different baseline reference periods.** Colored lines indicate the quarterly death rates for males (blue lines) and females (red lines), black lines indicate the baselines, and the transparent colored bands indicate the 95% prediction intervals for males (blue) and females (red), and the vertical gray line indicates the border between reference period and pandemic period. Age group is indicated on the right. "}
 
 
 preds_more %>%
   unnest(c(predict, excess)) %>%
-  filter(Age %in% c("70-79", "80-89")) %>% 
+  filter(Age %in% c("70-79", "80-89"), Sex == "Male") %>% 
   mutate(
     base_start = as.numeric(str_sub(prediction, 1, 4)),
     fit = ifelse(Year < base_start, NA, fit),
@@ -695,14 +608,12 @@ preds_more %>%
     ) %>% 
   ggplot() +
   geom_line(aes(YQ, (fit  - fit) * 1000), size = .15) +
-  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000, fill = Sex), alpha = 0.2) +
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) * 1000, ymax = (conf_hi - fit) * 1000), fill = "gray75", alpha = 0.5) +
   geom_vline(xintercept = 2019.88, size = 0.2, color = "gray70") +
-  geom_line(aes(YQ, excess_rate_sab * 1000, color = Sex), size = .25) +
+  geom_line(aes(YQ, excess_rate_sab * 1000), color = colors_2[2], size = .25) +
   scale_y_continuous(limits = c(NA, NA)) +
   zoo::scale_x_yearqtr(format = "%YQ%q", n = 3) +
   labs(y = expression(bold(Delta*"death rate (per 1000)"))) +
-  scale_color_manual(values = colors_2) +
-  scale_fill_manual(guide = "none", values = colors_2) +
   facet_theme +
   facet_grid(Age ~ prediction, scales = "free_y") +
   theme(
@@ -717,7 +628,7 @@ preds_more %>%
 
 ### Sensitivity to stratification
 
-To explore the sensitivity to the choice of stratification, I first used 5-year instead of 10-year age bins (Figure 14-16).
+To explore how sensitive the result is to the choice of stratification, I first used 5-year instead of 10-year age bins. The de-trended and de-seasonalized death rates and baselines are shown in Figure 14 and 15. The calculated excess deaths for this stratification are shown in Figure 16. The numbers are lower than the numbers found using 10-year bins.
 
 
 
@@ -732,15 +643,15 @@ death_rates_5$Age <- factor(death_rates_5$Age, levels = c(
 ))
 
 preds_5 <- 
-  make_prediction(death_rates_5, "2008-19", 2008, 2019, Age, Sex) %>% 
-  bind_rows(make_prediction(death_rates_5, "2009-19", 2009, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2010-19", 2010, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2011-19", 2011, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2012-19", 2012, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2013-19", 2013, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2014-19", 2014, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2015-19", 2015, 2019, Age, Sex)) %>%
-  bind_rows(make_prediction(death_rates_5, "2016-19", 2016, 2019, Age, Sex))
+  make_prediction(death_rates_5, "2008-19", 2008, 2019, z, Age, Sex) %>% 
+  bind_rows(make_prediction(death_rates_5, "2009-19", 2009, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2010-19", 2010, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2011-19", 2011, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2012-19", 2012, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2013-19", 2013, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2014-19", 2014, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2015-19", 2015, 2019, z, Age, Sex)) %>%
+  bind_rows(make_prediction(death_rates_5, "2016-19", 2016, 2019, z, Age, Sex))
 ```
 
 ```{r Figure-14, echo=FALSE, fig.asp=2.5, layout="l-page", fig.cap = "**De-trended/de-seasonalized quarterly death rates and  baselines using 5-year age brackets.** (A) Baseline reference period 2010-19, and (B) baseline reference period 2015-19. Colored lines indicate the quarterly death rates, black lines indicate the baselines, and the gray bands indicate the 95% prediction intervals. Sex is indicted on top, age on the right."}
@@ -820,6 +731,7 @@ p2 <- preds_5 %>%
 ***Figure 15: De-trended/de-seasonalized quarterly death rates and  baselines for 2020-2022 using 5-year age brackets.** (A) Baseline reference period 2010-19, and (B) baseline reference period 2015-19. Colored lines indicate the quarterly death rates for males  and females , black lines indicate the baselines, and the transparent colored bands indicate the 95% prediction intervals for males (blue) and females (red).*
 
 
+
 ```{r Figure-16}
 preds_5 %>%
   unnest(c(predict, excess)) %>%
@@ -849,20 +761,22 @@ preds_5 %>%
 
 ***Figure 16: Excess deaths by age for the period 2020 Q1 - 2022 Q3 depending on baseline reference period using 5-year brackets.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the 95% prediction interval in a given quarter. Baseline period is indicated on the x-axis.*
 
+Then, I tried other stratifications, namely 10- and 5-year age bins but without stratifying for sex, and a completely non-stratified dataset. The excess death rates for all baselines and stratifications are shown in Figure 17. To check how much of the differences are explained by calculating excess deaths as those exceeding an interval, I also calculated excess deaths compared to the mean season adjusted baseline itself (Figure 18) and found a bit less impact of stratification. So the impact of straficiation can be explained both by the prediction intervals and the baselines themselves. 
+
 ```{r calc-more-baselines-no-strata}
 # make predictions on non-stratified data
 death_rates_ns <- read_csv("data/death_rates_no_strata.csv")
 
 preds_no_strata <- 
-  make_prediction(death_rates_ns, "2008-19", 2008, 2019) %>%
-  bind_rows(make_prediction(death_rates_ns, "2009-19", 2009, 2019)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2010-19", 2010, 2019)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2011-19", 2011, 2019)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2012-19", 2012, 2019)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2013-19", 2013, 2019)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2014-19", 2014, 2019)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2015-19", 2015, 2019)) %>%
-  bind_rows(make_prediction(death_rates_ns, "2016-19", 2016, 2019)) 
+  make_prediction(death_rates_ns, "2008-19", 2008, 2019, z) %>%
+  bind_rows(make_prediction(death_rates_ns, "2009-19", 2009, 2019, z)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2010-19", 2010, 2019, z)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2011-19", 2011, 2019, z)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2012-19", 2012, 2019, z)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2013-19", 2013, 2019, z)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2014-19", 2014, 2019, z)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2015-19", 2015, 2019, z)) %>%
+  bind_rows(make_prediction(death_rates_ns, "2016-19", 2016, 2019, z)) 
 ```
 
 
@@ -872,26 +786,26 @@ death_rates_5a <- read_csv("data/death_rates_5y_age.csv")
 death_rates_10a <- read_csv("data/death_rates_10y_age.csv")
 
 preds_5_no_sex <- 
-  make_prediction(death_rates_5a, "2008-19", 2008, 2019, Age) %>% 
-  bind_rows(make_prediction(death_rates_5a, "2009-19", 2009, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2010-19", 2010, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2011-19", 2011, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2012-19", 2012, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2013-19", 2013, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2014-19", 2014, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2015-19", 2015, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_5a, "2016-19", 2016, 2019, Age))
+  make_prediction(death_rates_5a, "2008-19", 2008, 2019, z, Age) %>% 
+  bind_rows(make_prediction(death_rates_5a, "2009-19", 2009, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2010-19", 2010, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2011-19", 2011, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2012-19", 2012, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2013-19", 2013, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2014-19", 2014, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2015-19", 2015, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_5a, "2016-19", 2016, 2019, z, Age))
 
 preds_10_no_sex <- 
-  make_prediction(death_rates_10a, "2008-19", 2008, 2019, Age) %>% 
-  bind_rows(make_prediction(death_rates_10a, "2009-19", 2009, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2010-19", 2010, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2011-19", 2011, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2012-19", 2012, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2013-19", 2013, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2014-19", 2014, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2015-19", 2015, 2019, Age)) %>%
-  bind_rows(make_prediction(death_rates_10a, "2016-19", 2016, 2019, Age))
+  make_prediction(death_rates_10a, "2008-19", 2008, 2019, z, Age) %>% 
+  bind_rows(make_prediction(death_rates_10a, "2009-19", 2009, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2010-19", 2010, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2011-19", 2011, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2012-19", 2012, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2013-19", 2013, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2014-19", 2014, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2015-19", 2015, 2019, z, Age)) %>%
+  bind_rows(make_prediction(death_rates_10a, "2016-19", 2016, 2019, z, Age))
 ```
 
 ```{r collect-all-predictions, echo=FALSE}
@@ -983,6 +897,8 @@ all_preds %>%
 
 ## Discussion and limitations
 
+In this analysis, I have examined the mortality rates in Denmark during the Covid-19 pandemic by quarter, age, and sex, and compared  the rates to pre-pandemic baseline rates using a very simple model. The simplicity of the model allows for transparency into the choices that impact how much excess mortality is observed during the pandemic. These choices include choice of the reference period, choice of stratification, and choice of threshold for normal variability. The sensitivity analysis is specific for this method and this dataset. Other methods or datasets may be more or less sensitive to e.g. baseline choice or stratification.
+
 - Excess deaths by quarter (or shorter intervals) may underestimate excess deaths over longer time periods. For example if the death rates for a group are  above the baseline but within the prediction interval for the whole period of 2020-22, it will not count as excess death, but may still be unusual for a three-year period. One could instead compare deaths over a similar time span during the reference period.
-- The sensitivity analysis is specific for this method and this dataset. Other methods or datasets may be more or less sensitive to baseline choice or stratification.
+
 - ...
