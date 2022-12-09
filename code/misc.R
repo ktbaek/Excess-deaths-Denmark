@@ -51,12 +51,16 @@ preds %>%
   )
 
 gglayer_1 <- list(
+  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) / sd, ymax = (conf_hi - fit)/sd), fill = "gray70", alpha = 0.35),
+  geom_line(aes(YQ, (fit  - fit) / sd), size = .3),
+  geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70"),
+  geom_line(aes(YQ, z, color = Sex), size = .4),
   scale_y_continuous(limits = c(NA, NA)),
   zoo::scale_x_yearqtr(format = "%YQ%q", n = 5, expand = expansion(mult = c(0.025, .025))),
-  labs(y = "Deaths per 1000"),
+  labs(y = "z-score"),
   scale_color_manual(guide = "none", values = colors_2),
   facet_theme,
-  facet_grid(Age ~ Sex, scales = "fixed"),
+  facet_grid(Age ~ prediction, scales = "fixed"),
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = rel(0.8)),
     panel.grid.minor.x = element_line(size = 0.1),
@@ -68,31 +72,15 @@ p1 <- preds %>%
   unnest(c(predict, excess)) %>%
   filter(prediction == "2010-19", Year >= 2010) %>%
   ggplot() +
-  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) / sd, ymax = (conf_hi - fit)/sd), fill = "gray70", alpha = 0.35) +
-  geom_line(aes(YQ, (fit  - fit) / sd), size = .3) +
-  geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70") +
-  geom_line(aes(YQ, z, color = Sex), size = .4) +
   gglayer_1 +
-  scale_y_continuous(limits = c(NA, NA)) +
-  scale_color_manual(values = colors_2) +
-  labs(y = "z-score") +
   theme(
-    panel.spacing.y = unit(0.7, "cm"),
     plot.margin = margin(0.5, 0.2, 0.3, 0.5, "cm"))
 
 p2 <- preds %>%
   unnest(c(predict, excess)) %>%
   filter(prediction == "2015-19", Year >= 2015) %>%
   ggplot() +
-  geom_ribbon(aes(YQ, ymin = (conf_lo - fit) / sd, ymax = (conf_hi - fit)/sd), fill = "gray70", alpha = 0.35) +
-  geom_line(aes(YQ, (fit  - fit) / sd), size = .3) +
-  geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70") +
-  geom_line(aes(YQ, z, color = Sex), size = .4) +
-  gglayer_1 +
-  scale_y_continuous(limits = c(NA, NA)) +
-  scale_color_manual(values = colors_2) +
   theme(
-    panel.spacing.y = unit(0.7, "cm"), 
     axis.title.y = element_blank(),
     plot.margin = margin(0.5, 0.5, 0.3, 0.2, "cm"))
 
