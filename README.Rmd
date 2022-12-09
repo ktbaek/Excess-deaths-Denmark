@@ -962,9 +962,10 @@ In this analysis, I have examined the mortality rates in Denmark during the Covi
 
 
 - Affected age groups over time during the pandemic. 
-- Reference period matters a lot. The best reference period may not be the same across age groups. Depends on linearity of trend and the occurence of special years with high or low mortality affecting age groups differently. 
-- Stratification matters somewhat. Using 5-year bins results in less excess death compare to using 10-year bins. Stratifying for sex does not make a huge difference. 
+- The choice of reference period for the baseline has a considerable impact on the number of excess deaths found using this method. This is because different time periods may have different trends or patterns that can vary by age group. For example the mortality rate trend may not be linear, or special years with high or low mortality rates may affect the baseline. These factors can affect different age groups differently, so the best reference period for one age group may not be the same as the best reference period for another age group.
+
+- The method of stratification  affects the results using this method. Using 5-year age bins instead of 10-year age bins results in a lower estimate of excess deaths. Stratifying by sex does not have a large impact. 
 - What is normal?
-- Excess deaths by quarter (or shorter intervals) may give a different estimation of excess deaths when cumulating over longer time periods, than calculating using longer periods (e.g. one or more years). I have not explored that. 
+- Excess deaths can be calculated using different time intervals. Calculating excess deaths by quarter may give a different result than calculating excess deaths over a longer time period, such as one or more years. I have not explored this further. 
 
 - ...
