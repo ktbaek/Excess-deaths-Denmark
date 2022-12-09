@@ -440,12 +440,11 @@ reference period and pandemic period. Age group is indicated on the
 right.](README_files/figure-gfm/Figure-13-1.png)
 
 ***Figure 13: De-trended/de-seasonalized death rates and baselines for
-older age groups using different baseline reference periods.** Colored
-lines indicate the quarterly death rates for males and females , black
-lines indicate the baselines, and the transparent colored bands indicate
-the 95% prediction intervals for males (blue) and females (yellow), and
-the vertical gray line indicates the border between reference period and
-pandemic period. Age group is indicated on the right.*
+older age groups using different baseline reference periods.** Blue
+lines indicate the quarterly death rates for males, black lines indicate
+the baselines, and the gray bands indicate the 95% prediction intervals,
+and the vertical gray line indicates the border between reference period
+and pandemic period. Age group is indicated on the right.*
 
 ### Sensitivity to stratification
 
