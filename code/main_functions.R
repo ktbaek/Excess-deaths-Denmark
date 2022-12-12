@@ -73,6 +73,7 @@ calc_excess <- function(df1, df2) {
       sd = sd_Q * .fitted,
       conf_lo = .fitted + .fitted * conf_lo_Q,
       conf_hi = .fitted + .fitted * conf_hi_Q,
+      res = Death_rate - fit,
       z = (Death_rate - fit) / sd,
       # calculate excess death rate as death rates exceeding quarterly adjusted fit +/- pred interval
       excess_rate = case_when(
@@ -83,7 +84,7 @@ calc_excess <- function(df1, df2) {
       # calculate excess deaths as above, but multiplying the rates by population
       excess_abs = excess_rate * Population
     ) %>%
-    select(fit, sd, conf_lo, conf_hi, z, excess_rate, excess_abs)
+    select(fit, sd, conf_lo, conf_hi, res, z, excess_rate, excess_abs)
 }
 
 make_prediction <- function(df, pred, from, to, z_value, ...) {
