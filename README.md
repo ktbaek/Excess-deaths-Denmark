@@ -564,7 +564,7 @@ depending on baseline reference period.** \*)Excess deaths in this plot
 are defined as the difference between deaths and the season adjusted
 baseline. Baseline reference period is indicated on the x-axis.*
 
-## Discussion and limitations (*in progress*)
+## Discussion and limitations (*very much in progress*)
 
 In this analysis, I have examined the mortality rates in Denmark during
 the Covid-19 pandemic by quarter, age, and sex, and compared the rates
