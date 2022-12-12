@@ -464,6 +464,10 @@ the baselines, and the gray bands indicate the 90% prediction intervals,
 and the vertical gray line indicates the border between reference period
 and pandemic period. Age group is indicated on the right.*
 
+**Figure 15** shows shows the difference between the observed and
+expected death rates relative to the expected death rates for 2020-2022
+by age group and by baseline reference period.
+
 ![](README_files/figure-gfm/Figure-15-1.png)<!-- -->
 
 ***Figure 15: Relative change (in %) of quarterly death rates compared
@@ -533,8 +537,8 @@ Then, I tried other stratifications, namely 10- and 5-year age bins but
 without stratifying for sex, and a completely non-stratified dataset.
 The excess death rates for all baselines and stratifications are shown
 in **Figure 20**. This sensitivity analysis is specific for this method
-and this dataset. Other methods or datasets may display different
-sensitivities to baseline choice or stratification.
+and this dataset. Other methods or datasets may be more sensitive or
+more robust to baseline choice or stratification.
 
 ![**Excess deaths per 100,000 of the total Danish population for the
 period 2020 Q1 - 2022 Q3 for stratified and non-stratified data
@@ -586,9 +590,13 @@ not be the same as the best reference period for another age group.
 The method of stratification affects the results using this method.
 Using 5-year age bins instead of 10-year age bins results in a lower
 estimate of excess deaths. Stratifying by sex does not have a large
-impact. - What is normal? Excess deaths can be calculated using
-different time intervals. Calculating excess deaths by quarter may give
-a different result than calculating excess deaths over a longer time
-period, such as one or more years. I have not explored this further.
+impact.
+
+-   What is normal?
+
+Excess deaths can be calculated using different time intervals.
+Calculating excess deaths by quarter may give a different result than
+calculating excess deaths over a longer time period, such as one or more
+years. I have not explored this further.
 
 -   …

@@ -624,6 +624,8 @@ p2 <- preds_more %>%
 
 As shown in **Figure 13**, the choice of reference period for the baseline has a significant impact on the number of excess deaths. Most of the difference between baselines is due to the 70-79 age group, with the exception of the low rate of excess deaths found using the 2014-19 baseline, which is mainly influenced by the 80-89 age group. **Figure 14** shows the de-trended and de-seasonalized death rates and baselines for these two age groups (only males are shown for illustration). The large impact of the reference period on the excess deaths in the 70-79 age group appears to be due to the deviation of the long-term trend from a linear fit (as mentioned above), while the low number of excess deaths in the 80-89 age group using the 2014-19 baseline is due to a high mortality year (2013, mainly Q1) followed immediately by a low mortality year (2014).
 
+
+
 ```{r Figure-14, echo=FALSE, fig.asp=0.5, layout="l-screen", fig.cap = "**De-trended/de-seasonalized death rates and baselines for older age groups using different baseline reference periods.** Colored lines indicate the quarterly death rates for males (blue lines) and females (red lines), black lines indicate the baselines, and the transparent colored bands indicate the `r pi` prediction intervals for males (blue) and females (red), and the vertical gray line indicates the border between reference period and pandemic period. Age group is indicated on the right. "}
 
 
@@ -655,6 +657,8 @@ preds_more %>%
 ```
 
 ***Figure 14: De-trended/de-seasonalized death rates and baselines for older age groups using different baseline reference periods.** Blue lines indicate the quarterly death rates for males, black lines indicate the baselines, and the gray bands indicate the `r pi` prediction intervals, and the vertical gray line indicates the border between reference period and pandemic period. Age group is indicated on the right.*
+
+**Figure 15** shows shows the difference between the observed and expected death rates relative to the expected death rates for 2020-2022 by age group and by baseline reference period.
 
 ```{r Figure-15, fig.asp = 1}
  preds_more %>% 
@@ -822,7 +826,7 @@ preds_5 %>%
 
 ***Figure 19: Excess deaths by age for the period 2020 Q1 - 2022 Q3 depending on baseline reference period using 5-year brackets.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval in a given quarter. Baseline period is indicated on the x-axis. Ages 0-19 are omitted.*
 
-Then, I tried other stratifications, namely 10- and 5-year age bins but without stratifying for sex, and a completely non-stratified dataset. The excess death rates for all baselines and stratifications are shown in **Figure 20**. This sensitivity analysis is specific for this method and this dataset. Other methods or datasets may display different sensitivities to baseline choice or stratification.
+Then, I tried other stratifications, namely 10- and 5-year age bins but without stratifying for sex, and a completely non-stratified dataset. The excess death rates for all baselines and stratifications are shown in **Figure 20**. This sensitivity analysis is specific for this method and this dataset. Other methods or datasets may be more sensitive or more robust to baseline choice or stratification.
 
 
 ```{r calc-more-baselines-no-strata}
@@ -967,7 +971,9 @@ In this analysis, I have examined the mortality rates in Denmark during the Covi
 The choice of reference period for the baseline has a considerable impact on the number of excess deaths found using this method. This is because different time periods may have different trends or patterns and these can vary by age group. For example the long-term mortality rate trend may not be linear, or special years with high or low mortality rates may affect the baseline. These factors can affect different age groups differently, so the best reference period for one age group may not be the same as the best reference period for another age group.
 
 The method of stratification  affects the results using this method. Using 5-year age bins instead of 10-year age bins results in a lower estimate of excess deaths. Stratifying by sex does not have a large impact. 
+
 - What is normal?
+
 Excess deaths can be calculated using different time intervals. Calculating excess deaths by quarter may give a different result than calculating excess deaths over a longer time period, such as one or more years. I have not explored this further. 
 
 - ...
