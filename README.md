@@ -12,9 +12,10 @@ established by linear regression followed by adjustment for seasonality.
 This analysis therefore takes into account both long-term trends, age
 composition, and seasonality. Excess deaths were defined as deaths
 exceeding a 90% prediction interval around the season adjusted
-baselines. Using this method, I found 96 and 72 excess deaths per
-100,000 (\~5600 and \~4200 excess deaths, respectively) from 2020 Q1 to
-2022 Q3 using the 2010-2019 and 2015-2019 baseline, respectively.
+baselines. Using this method, I identified age-groups with noteworthy
+deviations from the baseline since 2020. I found 96 and 72 excess deaths
+per 100,000 (\~5600 and \~4200 excess deaths, respectively) from 2020 Q1
+to 2022 Q3 using the 2010-2019 and 2015-2019 baseline, respectively.
 Finally, I explored how sensitive the result is to choice of baseline
 (using 2008-19, 2009-19, 2010-19, 2011-19, 2012-19, 2013-19, 2014-19,
 2015-19, and 2016-19 as reference periods) and choice of data
@@ -577,8 +578,7 @@ and seasonal fluctuations to identify deviations from the baseline. If
 these deviations exceed a prediction interval, they are considered
 excess deaths. The prediction interval is determined by the pre-pandemic
 variability around the baseline. The width of the interval is chosen to
-be close to the range of pre-pandemic variability, so that death rates
-within this range are not considered excess. This means that the
+be close to the range of pre-pandemic variability, meaning that the
 majority of the deviations around the baseline during the reference
 period are considered “normal”.
 
@@ -596,15 +596,22 @@ The choice of reference period for the baseline has a considerable
 impact on the number of excess deaths found using this method. This is
 because different time periods may have different trends or patterns and
 these can vary by age group. For example the long-term mortality rate
-trend may not be linear, or special years with high or low mortality
-rates may affect the baseline. These factors can affect different age
-groups differently, so the best reference period for one age group may
-not be the same as the best reference period for another age group.
+trend may not be linear, or outlier years or quarters with high or low
+mortality rates may affect the baseline. Longer reference periods,
+e.g. 10 years, have the advantage of being less sensitive to outliers.
+On the other hand, the trend over a long reference period may deviate
+from a linear fit. These factors can affect different age groups
+differently, so the best reference period for one age group may not be
+the same as the best reference period for another age group.
 
 The method of stratification affects the results using this method.
 Using 5-year age bins instead of 10-year age bins results in a lower
 estimate of excess deaths. Stratifying by sex does not have a large
 impact.
+
+The sensitivity analysis is specific for this method and this dataset.
+Other methods or datasets may be more sensitive or more robust to
+baseline choice or stratification.
 
 Excess deaths can be calculated using different time intervals.
 Calculating excess deaths by quarter may give a different result than
