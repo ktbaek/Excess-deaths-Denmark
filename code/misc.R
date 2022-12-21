@@ -1,6 +1,9 @@
 source("code/main_functions.R")
 source("code/other_functions.R")
 
+library(tidyverse)
+
+
 # make age (10y bins) and sex stratified predictions using 2010-19 and 2015-19 as baselines
 death_rates_10 <- read_csv("data/death_rates_10y_age_sex.csv") %>% 
   mutate(YQ = zoo::as.yearqtr(YQ))
@@ -297,18 +300,82 @@ death_rates_5$Age <- factor(death_rates_5$Age, levels = c(
 
 preds_5 <- make_more_preds(death_rates_5, 1.64, Age, Sex)
 
-preds_5 %>%
-unnest(c(predict, excess)) %>%
-  filter(prediction == "2010-19", Year >= 2010, Sex == "Female") %>%
-  ggplot() +
-  geom_tile(aes(YQ, fct_rev(Age), fill = z)) +
-  #geom_tile(aes(YQ, fct_rev(Age), fill = excess_rate / fit * 100)) +
-  zoo::scale_x_yearqtr(format = "%YQ%q", n = 10, expand = expansion(mult = c(0.025, .025))) +
-  scale_fill_gradient(name = "z-score", low = colorspace::lighten(colors_2[1], 0.9), high =  colorspace::darken(colors_2[1], 0.5), limits = c(1.64, NA), na.value = colorspace::lighten(colors_2[1], 0.9)) +
-  scale_y_discrete(position = "right") +
-  labs(y = "") +
+
+  
+gglayer_tile <- list(  
+  zoo::scale_x_yearqtr(format = "%YQ%q", n =3, expand = expansion(mult = c(0.025, .025))),
+  scale_y_discrete(position = "left"),
+  facet_grid(prediction~Sex),
+  labs(y = ""),
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
     panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(),
     panel.spacing.y = unit(0.7, "cm"),
-    plot.margin = margin(0.5, 0.2, 0.3, 0.5, "cm"))
+    plot.margin = margin(0.5, 0.2, 0.3, 0.5, "cm"),
+    legend.position = "bottom")
+)
+
+p1 <- preds %>%
+  unnest(c(predict, excess)) %>%
+  filter(prediction %in% c("2010-19", "2015-19"), Year >= 2015) %>%
+  ggplot() +
+  geom_tile(aes(YQ, fct_rev(Age), fill = excess_abs)) +
+  scale_fill_gradient2(name = "Excess deaths", low = colorspace::lighten(colors_2[2], 0.1), mid = "gray98", high =  colorspace::darken(colors_2[1], 0.1), midpoint = 0, limits = c(NA, NA), na.value = colorspace::lighten(colors_2[2], 0.9), breaks = c(0, 300)) +
+  gglayer_tile
+
+p2 <- preds %>%
+  unnest(c(predict, excess)) %>%
+  filter(prediction %in% c("2010-19", "2015-19"), Year >= 2015) %>%
+  ggplot() +
+  geom_tile(aes(YQ, fct_rev(Age), fill = excess_rate / fit * 100)) +
+  scale_fill_gradient2(name = "Excess deaths (%)", low = colorspace::lighten(colors_2[2], 0.1), mid = "gray98", high =  colorspace::darken(colors_2[1], 0.1), midpoint = 0, limits = c(NA, NA), na.value = colorspace::lighten(colors_2[2], 0.9)) +
+  gglayer_tile
+
+p3 <- preds %>%
+  unnest(c(predict, excess)) %>%
+  filter(prediction %in% c("2010-19", "2015-19"), Year >= 2015) %>%
+  ggplot() +
+  geom_tile(aes(YQ, fct_rev(Age), fill = z)) +
+  scale_fill_gradient2(name = "z-score", low = colorspace::lighten(colors_2[2], 0.1), mid = "gray98", high =  colorspace::darken(colors_2[1], 0.1), midpoint = 0, limits = c(NA, NA), na.value = colorspace::lighten(colors_2[2], 0.9)) +
+  gglayer_tile
+
+p1 + p2 + p3
+
+
+
+ preds_more %>% 
+   unnest(c(predict, excess)) %>% 
+   filter(Year >= 2020) %>% 
+   ggplot() +
+   geom_ribbon(aes(YQ, ymin = (conf_lo - fit) / fit * 100, ymax = (conf_hi - fit) / fit * 100, fill = Sex), alpha = 0.2) +
+   geom_hline(yintercept = 0) +
+   geom_line(aes(YQ, res / fit * 100, color = Sex)) + 
+   scale_color_manual(values = colors_2) +
+   scale_fill_manual(values = colors_2) +
+   zoo::scale_x_yearqtr(format = "%YQ%q", n = 3, expand = expansion(mult = c(0.025, .025))) +
+   scale_y_continuous(limits = c(NA, NA), labels = function(x) paste0(x, " %")) +
+   labs(y = "% change") +
+   facet_theme +
+   facet_grid(Age~ prediction, scales = "free_y") +
+   theme(
+     axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = rel(0.8)),
+     legend.title = element_blank()
+   )
+ 
+ preds_more %>% 
+   unnest(c(predict, excess)) %>% 
+   filter(Year >= 2020) %>% 
+   ggplot() +
+   geom_ribbon(aes(YQ, ymin = -1.64, ymax = 1.64), fill = "gray75", alpha = 0.35) +
+   geom_hline(yintercept = 0) +
+   geom_line(aes(YQ, z, color = Sex)) + 
+   scale_color_manual(values = colors_2) +
+   zoo::scale_x_yearqtr(format = "%YQ%q", n = 3, expand = expansion(mult = c(0.025, .025))) +
+   labs(y = "z-score") +
+   facet_theme +
+   facet_grid(Age~ prediction, scales = "fixed") +
+   theme(
+     axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = rel(0.8)),
+     legend.title = element_blank()
+   )
