@@ -200,7 +200,8 @@ SSI_covid_resolved %>%
        subtitle = "Weeks with <20 deaths are counted as zero and are unresolved as per SSI data file.\nQuarters with zero deaths in this chart had <150 covid deaths (pos PCR)",
        caption = "Code and data at github.com/ktbaek/Excess-deaths-Denmark, data source: SSI")  +
   theme(legend.title = element_blank(),
-        plot.background = element_rect(fill = "white"))
+        plot.background = element_rect(color = "white", fill = "white"),
+        legend.text = element_text(size = 10))
 
 ggsave("figures/ssi_covid_deaths.png", width = 18, height = 10, units = "cm", dpi = 300)
   
