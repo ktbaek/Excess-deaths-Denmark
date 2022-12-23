@@ -163,7 +163,7 @@ SSI_covid_resolved <- read_csv2("data/Deaths_o_weeks_covid_cause.csv") %>%
       Udfald == "Dødstal 30 dage efter infektion (PCR)" ~ "Deaths 30 days after positive PCR",
       Udfald == "Død af covid (DAR)" ~ "Died due to Covid",
       Udfald == "Endnu ikke valideret" ~ "Not yet validated",
-      Udfald == "Afventer dødsattest" ~ "Awaiting death certificate",
+      Udfald == "Afventer dødsattest" ~ "Pending death certificate",
       Udfald == "Død med covid (DAR)" ~ "Died with Covid")
   ) %>% 
   group_by(YQ, Udfald) %>% 
@@ -185,7 +185,7 @@ read_csv2("data/Deaths_over_time.csv") %>%
 SSI_covid_resolved$Udfald <- krisr::new_order(
     vector = SSI_covid_resolved$Udfald, order = c("Deaths 30 days after positive PCR",
               "Died with Covid",
-              "Awaiting death certificate",
+              "Pending death certificate",
               "Not yet validated",
               "Died due to Covid")
   ) 
