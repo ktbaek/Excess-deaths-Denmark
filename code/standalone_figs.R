@@ -193,6 +193,7 @@ SSI_covid_resolved %>%
   ggplot() +
   geom_bar(data = function(x) subset(x, Udfald != "Deaths 30 days after positive PCR"), stat = "identity", position = "stack",aes(YQ, value, fill = Udfald))+
   zoo::scale_x_yearqtr(format = "%YQ%q", n = 5, expand = expansion(mult = c(0.025, .025))) +
+  scale_fill_manual(values = c(scales::hue_pal()(2)[1], "gray80", scales::hue_pal()(2)[2])) +
   facet_theme + 
   labs(y = "Deaths",
        title = "Deaths with positive SARS-CoV-2 PCR resolved for cause",
