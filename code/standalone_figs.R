@@ -21,7 +21,7 @@ covid_deaths <- ssi_deaths %>%
     Quarter_end = ymd(Quarter_end),
     Quarter = quarter(Quarter_end) - quarter(1),
     Year = year(Quarter_end),
-    Year = ifelse(Quarter == 0, 2021, Year),
+    Year = ifelse(Quarter == 0, Year - 1, Year),
     Quarter = ifelse(Quarter == 0, 4, Quarter),
     YQ = zoo::as.yearqtr(format(paste0(Year, Quarter)), "%Y%q")
   ) %>% 
@@ -38,12 +38,12 @@ gglayer_2 <- list(
   geom_ribbon(aes(YQ, ymin = ((Death_rate  - covid_rate) / fit - 1)  * 100, ymax = (Death_rate - fit) / fit * 100), fill = "#00E676", alpha = 0.7),
   geom_line(aes(YQ, (fit  - fit) / fit * 100), size = .3),
   geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70"),
-  geom_vline(xintercept = 2021.25, size = 0.4, color = "#00E676"),
+  geom_vline(xintercept = 2021.00, size = 0.4, color = "#00E676"),
   geom_line(aes(YQ, (Death_rate - fit) / fit * 100), size = .6, color = "#FF3D00"),
   scale_y_continuous(limits = c(NA, NA), labels = function(x) paste0(x, " %")),
   zoo::scale_x_yearqtr(format = "%YQ%q", n = 10, expand = expansion(mult = c(0.025, .025))),
   labs(
-    subtitle = "Red lines indicate the difference between observed and expected mortality rates relative to the expected mortality rates.\nGreen bands indicate deaths with a positive SARS-CoV-2 PCR (data available from 2021 Q2 [green vertical line]).\nResults based on two different reference periods (2010-2019 and 2015-2019) are shown.\nGray bands indicate a 95% prediction interval.",
+    subtitle = "Red lines indicate the difference between observed and expected mortality rates relative to the expected mortality rates.\nGreen bands indicate deaths with a positive SARS-CoV-2 PCR (data available from 2021 Q1 [green vertical line]).\nGray bands indicate a 95% prediction interval.\nResults based on two different reference periods (2010-2019 and 2015-2019) are shown.",
     caption = "Method described at github.com/ktbaek/Excess-deaths-Denmark",
     y = "Change relative to baseline"),
   facet_theme,
@@ -162,8 +162,8 @@ SSI_covid_resolved <- read_csv2("data/Deaths_o_weeks_covid_cause.csv") %>%
     Udfald = case_when(
       Udfald == "Dødstal 30 dage efter infektion (PCR)" ~ "Deaths 30 days after positive PCR",
       Udfald == "Død af covid (DAR)" ~ "Died due to Covid",
-      Udfald == "Endnu ikke valideret" ~ "Not yet validated",
-      Udfald == "Afventer dødsattest" ~ "Pending death certificate",
+      Udfald == "Endnu ikke valideret" ~ "Pending",
+      Udfald == "Afventer dødsattest" ~ "Pending",
       Udfald == "Død med covid (DAR)" ~ "Died with Covid")
   ) %>% 
   group_by(YQ, Udfald) %>% 
@@ -185,8 +185,7 @@ read_csv2("data/Deaths_over_time.csv") %>%
 SSI_covid_resolved$Udfald <- krisr::new_order(
     vector = SSI_covid_resolved$Udfald, order = c("Deaths 30 days after positive PCR",
               "Died with Covid",
-              "Pending death certificate",
-              "Not yet validated",
+              "Pending",
               "Died due to Covid")
   ) 
 
