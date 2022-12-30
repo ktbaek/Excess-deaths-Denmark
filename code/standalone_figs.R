@@ -156,7 +156,7 @@ SSI_covid_resolved <- read_csv2("data/Deaths_o_weeks_covid_cause.csv") %>%
     value = as.integer(value),
     Year = as.integer(str_sub(week_year, 5, 8)),
     Week = as.integer(str_sub(week_year, 2, 3)),
-    Date = c19dk::week_to_date(Year, Week, day = 7), # Date for the Sunday in each week
+    Date = c19dk::week_to_date(Year, Week, day = 4), # Date for the Thursday in each week
     Quarter = lubridate::quarter(Date), # quarter of the Sunday in each week. The quarterly values are thereby not completely precise
     YQ = zoo::as.yearqtr(format(paste0(Year, Quarter)), "%Y%q"),
     Udfald = case_when(
@@ -166,8 +166,13 @@ SSI_covid_resolved <- read_csv2("data/Deaths_o_weeks_covid_cause.csv") %>%
       Udfald == "Afventer dødsattest" ~ "Pending",
       Udfald == "Død med covid (DAR)" ~ "Died with Covid")
   ) %>% 
+  group_by(YQ) %>% 
+  mutate(na_weeks = sum(is.na(value)) / 5) %>% # because 5 categories
   group_by(YQ, Udfald) %>% 
-  summarize(value = sum(value, na.rm = TRUE))
+  summarize(
+    na_weeks = mean(na_weeks),
+    value = sum(value, na.rm = TRUE)
+    )
   
 # compare with the numbers from Deaths_over_time
 read_csv2("data/Deaths_over_time.csv") %>% 
@@ -192,14 +197,29 @@ SSI_covid_resolved$Udfald <- krisr::new_order(
 SSI_covid_resolved %>% 
   ggplot() +
   geom_bar(data = function(x) subset(x, Udfald != "Deaths 30 days after positive PCR"), stat = "identity", position = "stack",aes(YQ, value, fill = Udfald))+
-  zoo::scale_x_yearqtr(format = "%YQ%q", n = 5, expand = expansion(mult = c(0.025, .025))) +
-  scale_fill_manual(values = c(scales::hue_pal()(2)[1], "gray80", scales::hue_pal()(2)[2])) +
+  zoo::scale_x_yearqtr(format = "%Y Q%q", n = 5, expand = expansion(mult = c(0.025, .025))) +
+  #scale_fill_manual(values = c(scales::hue_pal()(2)[1], "gray80", scales::hue_pal()(2)[2])) +
+  scale_fill_manual(values = c("#FF6E40", "gray80", "#40C4FF")) +
+  geom_label(
+    aes(
+      x = YQ, 
+      y = -100, 
+      label = na_weeks
+    ),
+    size = 2.3,
+    color = "gray60",
+    fill = "white",
+    label.size = NA,
+    label.padding = unit(0.1, "lines"),
+    check_overlap = TRUE) +
   facet_theme + 
   labs(y = "Deaths",
-       title = "Deaths with positive SARS-CoV-2 PCR resolved for cause",
-       subtitle = "Weeks with <20 deaths are counted as zero and are unresolved as per SSI data file.\nQuarters with zero deaths in this chart had <150 covid deaths (pos PCR)",
-       caption = "Code and data at github.com/ktbaek/Excess-deaths-Denmark, data source: SSI")  +
+       title = "Deaths with positive SARS-CoV-2 PCR by cause using death certificates",
+       subtitle = "Weeks with <20 deaths are counted as zero and are unresolved for cause of death.\nThe number of unresolved weeks is indicated below the bars.\nQuarters with zero deaths in this chart had <150 deaths with positive PCR.",
+       caption = "Code and data at github.com/ktbaek/Excess-deaths-Denmark, data source: covid19.ssi.dk")  +
   theme(legend.title = element_blank(),
+        axis.text.x = element_text(margin = margin(t = 0, r = 0, b = 0, l = 0), size = 7),
+        axis.text.y = element_text(size = 7),
         plot.background = element_rect(color = NA, fill = "white"),
         legend.text = element_text(size = 10))
 
