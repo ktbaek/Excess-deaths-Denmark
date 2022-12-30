@@ -157,7 +157,7 @@ SSI_covid_resolved <- read_csv2("data/Deaths_o_weeks_covid_cause.csv") %>%
     Year = as.integer(str_sub(week_year, 5, 8)),
     Week = as.integer(str_sub(week_year, 2, 3)),
     Date = c19dk::week_to_date(Year, Week, day = 4), # Date for the Thursday in each week
-    Quarter = lubridate::quarter(Date), # quarter of the Sunday in each week. The quarterly values are thereby not completely precise
+    Quarter = lubridate::quarter(Date), # quarter of the Thursday in each week. The quarterly values are thereby not completely precise
     YQ = zoo::as.yearqtr(format(paste0(Year, Quarter)), "%Y%q"),
     Udfald = case_when(
       Udfald == "Dødstal 30 dage efter infektion (PCR)" ~ "Deaths 30 days after positive PCR",
