@@ -20,7 +20,7 @@ make_death_rates <- function(deaths_df, pop_df, ...) {
     summarize(Deaths = sum(Deaths, na.rm = TRUE)) %>%
     # calculate death rates
     right_join(pop_df, by = c(purrr::map_chr(enquos(...), rlang::as_label), "Year", "Quarter")) %>%
-    filter(YQ != "2022 Q4") %>% # excluding current incomplete quarter
+    filter(YQ != "2023 Q1") %>% # excluding current incomplete quarter
     mutate(Death_rate = Deaths / Population) %>%
     ungroup()
 }

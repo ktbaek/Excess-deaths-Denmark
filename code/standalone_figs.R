@@ -1,7 +1,28 @@
+library(ggtext)
 source("code/main_functions.R")
 source("code/other_functions.R")
 
 library(tidyverse)
+
+theme_set(c19dk::theme_covid())
+
+facet_theme <-
+  theme(
+    text = element_text(size = 7),
+    plot.margin = margin(0.5, 0.5, 0.3, 0.5, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 7),
+    plot.title = element_text(size = 12, hjust = 0),
+    plot.subtitle = element_text(hjust = 0),
+    plot.caption = element_text(size = 10),
+    strip.text = element_text(face = "bold"),
+    axis.title.y = element_text(size = 8, margin = margin(t = 0, r = 20, b = 0, l = 0)),
+    axis.title.y.right = element_text(size = 8, margin = margin(t = 0, r = 0, b = 0, l = 20))
+  )
+
+quartzFonts(lato = c("Lato-Regular", "Lato-Bold", "Lato-Light", "Lato-BoldItalic"))
+
 
 pred_names <- c(
   "2010-19" = "Baseline: 2010-19",
@@ -18,9 +39,9 @@ ssi_deaths <- read_csv2("data/SSI_death_age.csv")
 covid_deaths <- ssi_deaths %>% 
   pivot_longer(-Age, names_to = c(NA, "Quarter_end"), values_to = "C_deaths", names_sep = "_") %>% 
   mutate(
-    Quarter_end = ymd(Quarter_end),
-    Quarter = quarter(Quarter_end) - quarter(1),
-    Year = year(Quarter_end),
+    Quarter_end = lubridate::ymd(Quarter_end),
+    Quarter = lubridate::quarter(Quarter_end) - lubridate::quarter(1),
+    Year = lubridate::year(Quarter_end),
     Year = ifelse(Quarter == 0, Year - 1, Year),
     Quarter = ifelse(Quarter == 0, 4, Quarter),
     YQ = zoo::as.yearqtr(format(paste0(Year, Quarter)), "%Y%q")
@@ -39,11 +60,11 @@ gglayer_2 <- list(
   geom_line(aes(YQ, (fit  - fit) / fit * 100), size = .3),
   geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70"),
   geom_vline(xintercept = 2021.00, size = 0.4, color = "#00E676"),
-  geom_line(aes(YQ, (Death_rate - fit) / fit * 100), size = .6, color = "#FF3D00"),
+  geom_line(aes(YQ, (Death_rate - fit) / fit * 100), size = .6, color = "#FF5722"),
   scale_y_continuous(limits = c(NA, NA), labels = function(x) paste0(x, " %")),
-  zoo::scale_x_yearqtr(format = "%YQ%q", n = 10, expand = expansion(mult = c(0.025, .025))),
+  zoo::scale_x_yearqtr(format = "%YQ%q", n = 10, expand = expansion(mult = c(0.025, .015))),
   labs(
-    subtitle = "Red lines indicate the difference between observed and expected mortality rates relative to the expected mortality rates.\nGreen bands indicate deaths with a positive SARS-CoV-2 PCR (data available from 2021 Q1 [green vertical line]).\nGray bands indicate a 95% prediction interval.\nResults based on two different reference periods (2010-2019 and 2015-2019) are shown.",
+    subtitle = "<span style = 'color:#FF5722;'>**Red lines**</span> indicate the difference between observed and expected mortality rates relative to the expected mortality rates.<br><span style = 'color:#40CA74;'>**Green bands**</span> indicate deaths with a positive SARS-CoV-2 PCR (data available from 2021 Q1 [green vertical line]).<br><span style = 'color:#9F9F9F;'>**Gray bands**</span> indicate a 95% prediction interval.<br>Results based on two different reference periods (2010-2019 and 2015-2019) are shown.",
     caption = "Method described at github.com/ktbaek/Excess-deaths-Denmark",
     y = "Change relative to baseline"),
   facet_theme,
@@ -56,7 +77,7 @@ gglayer_2 <- list(
     plot.margin = margin(0.5, 0.2, 0.2, 0.5, "cm"),
     plot.title = element_text(size = 10), 
     plot.caption = element_text(size = 8), 
-    plot.subtitle = element_text(size = 8, lineheight = 1))
+    plot.subtitle = element_textbox_simple(size = 8, lineheight = 1.1, padding = margin(0,0,5,0)))
 )
 
 
@@ -109,7 +130,7 @@ ggsave("figures/mortality_change_ns_old.png", width = 18, height = 10, units = "
 
 gglayer_3 <- list(
   scale_y_continuous(limits = c(NA, NA)),
-  zoo::scale_x_yearqtr(format = "%YQ%q", n = 10, expand = expansion(mult = c(0.025, .025))),
+  zoo::scale_x_yearqtr(format = "%YQ%q", n = 10, expand = expansion(mult = c(0.025, .015))),
   labs(y = "Deaths per 1000"),
   facet_theme,
   facet_grid(Age ~ prediction, scales = "free_y", labeller = labeller(prediction = pred_names)),
@@ -137,7 +158,7 @@ preds_ns %>%
   geom_ribbon(aes(YQ, ymin = conf_lo * 1000, ymax = conf_hi * 1000), fill = "gray70", alpha = 0.3) +
   geom_line(aes(YQ, rate * 1000, color = type), size = .3) +
   geom_vline(xintercept = 2019.88, size = 0.4, color = "gray70") +
-  scale_color_manual(values = c("black", "red"), labels = c("Baseline", "Observed mortality rate")) +
+  scale_color_manual(values = c("black", "#FF5722"), labels = c("Baseline", "Observed mortality rate")) +
   gglayer_3 +
   labs(
     caption = "Method described at github.com/ktbaek/Excess-deaths-Denmark"
@@ -166,6 +187,13 @@ SSI_covid_resolved <- read_csv2("data/Deaths_o_weeks_covid_cause.csv") %>%
       Udfald == "Afventer dødsattest" ~ "Pending",
       Udfald == "Død med covid (DAR)" ~ "Died with Covid")
   ) %>% 
+  group_by(across(-value)) %>% 
+  summarize(value = sum(value, na.rm = TRUE))
+  
+
+
+
+SSI_covid_resolved_q <- SSI_covid_resolved %>% 
   group_by(YQ) %>% 
   mutate(na_weeks = sum(is.na(value)) / 5) %>% # because 5 categories
   group_by(YQ, Udfald) %>% 
@@ -177,8 +205,8 @@ SSI_covid_resolved <- read_csv2("data/Deaths_o_weeks_covid_cause.csv") %>%
 # compare with the numbers from Deaths_over_time
 read_csv2("data/Deaths_over_time.csv") %>% 
   mutate(
-    Date = ymd(Dato),
-    Year = year(Date),
+    Date = lubridate::ymd(Dato),
+    Year = lubridate::year(Date),
     Quarter = lubridate::quarter(Date),
     YQ = zoo::as.yearqtr(format(paste0(Year, Quarter)), "%Y%q")
   ) %>% 
@@ -187,14 +215,14 @@ read_csv2("data/Deaths_over_time.csv") %>%
   summarize(Deaths_pcr = sum(Antal_døde, na.rm = TRUE))
 
 # reorder categories
-SSI_covid_resolved$Udfald <- krisr::new_order(
-    vector = SSI_covid_resolved$Udfald, order = c("Deaths 30 days after positive PCR",
-              "Died with Covid",
-              "Pending",
-              "Died due to Covid")
-  ) 
+SSI_covid_resolved_q$Udfald <- krisr::new_order(
+  vector = SSI_covid_resolved_q$Udfald, order = c("Deaths 30 days after positive PCR",
+                                                "Died with Covid",
+                                                "Pending",
+                                                "Died due to Covid")
+) 
 
-SSI_covid_resolved %>% 
+SSI_covid_resolved_q %>% 
   ggplot() +
   geom_bar(data = function(x) subset(x, Udfald != "Deaths 30 days after positive PCR"), stat = "identity", position = "stack",aes(YQ, value, fill = Udfald))+
   zoo::scale_x_yearqtr(format = "%Y Q%q", n = 5, expand = expansion(mult = c(0.025, .025))) +
@@ -225,4 +253,46 @@ SSI_covid_resolved %>%
 
 ggsave("figures/ssi_covid_deaths.png", width = 18, height = 10, units = "cm", dpi = 300)
   
+pandemix <- read_csv2("data/Death_cause_pandemix.csv") %>% 
+  pivot_longer(-Week, names_to = "Udfald", values_to = "PandemiX")
+
+
+x <- SSI_covid_resolved %>% 
+  filter(Year == 2022) %>% 
+  left_join(pandemix, by = c("Week", "Udfald")) %>% 
+  rename(DAR = value) %>% 
+  pivot_longer(c(DAR, PandemiX), names_to = "Model", values_to = "value") %>% 
+  filter(
+    Udfald != "Deaths 30 days after positive PCR",
+    Week >= 30)
+
+# reorder categories
+x$Udfald <- krisr::new_order(
+  vector = x$Udfald, order = c(
+                                                "Died with Covid",
+                                                "Pending",
+                                                "Died due to Covid")
+) 
+
+x %>% 
+  ggplot() +
+  geom_area(aes(Week, value, fill = Udfald)) +
+  scale_y_continuous(limits = c(0, NA)) +
+  scale_fill_manual(values = c("#FF6E40", "gray80", "#40C4FF")) +
+  facet_theme +
+  facet_wrap(~Model) +
+  labs(y = "Deaths", x = "Week of 2022") +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    axis.title.x = element_text(size = 7, face = "bold"),
+    strip.text.x = element_text(size = 7))
+
+ggsave("figures/dar_pandemix.png", width = 12, height = 6.7, units = "cm", dpi = 300)
+
+colors_9 <- c( "#FF6E40",  "#40C4FF", "#00E676", "#FFD740", "gray70", "#BA68C8", "#FFAB40",  "#0288D1", "#26A69A")
+
+colors_9_light <- colorspace::lighten(colors_9, 0.4)
+
+scales::show_col(c(rbind(colors_9_light, colors_9)))
+
   

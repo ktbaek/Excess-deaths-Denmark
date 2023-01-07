@@ -6,16 +6,16 @@ Kristoffer T. Bæk
 ## Summary
 
 I calculated age and sex stratified death rates for each quarter during
-the Covid-19 pandemic in Denmark (2020 Q1 to, so far, 2022 Q3) and
+the Covid-19 pandemic in Denmark (2020 Q1 to, so far, 2022 Q4) and
 compared them to different pre-pandemic baselines. The baselines were
 established by linear regression followed by adjustment for seasonality.
 This analysis therefore takes into account both long-term trends, age
 composition, and seasonality. Excess deaths were defined as deaths
-exceeding a 90% prediction interval around the season adjusted
+exceeding a 95% prediction interval around the season adjusted
 baselines. Using this method, I identified age-groups with noteworthy
 deviations from the baseline since 2020. I found 96 and 72 excess deaths
 per 100,000 (\~5600 and \~4200 excess deaths, respectively) from 2020 Q1
-to 2022 Q3 using the 2010-2019 and 2015-2019 baseline, respectively.
+to 2022 Q4 using the 2010-2019 and 2015-2019 baseline, respectively.
 Finally, I explored how sensitive the result is to choice of baseline
 (using 2008-19, 2009-19, 2010-19, 2011-19, 2012-19, 2013-19, 2014-19,
 2015-19, and 2016-19 as reference periods) and choice of data
@@ -50,17 +50,17 @@ relative deviation, MRD, from the linear baseline for each quarter-type,
 season adjusted baseline, *baseline<sub>s</sub>*, as the linear baseline
 value plus the product of MRD and the linear baseline value.
 
-The 90% prediction interval *PI* was calculated as the season adjusted
-baseline value +/- 1.64 × the relative standard deviation for each
+The 95% prediction interval *PI* was calculated as the season adjusted
+baseline value +/- 1.96 × the relative standard deviation for each
 quarter-type *Q* multiplied by the linear baseline value.
 
-![MRD_Q = \\frac{1}{N}\\sum\_{i=1}^{N} \\frac{residual\_{i,Q}}{baseline\_{i,Q}}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;MRD_Q%20%3D%20%5Cfrac%7B1%7D%7BN%7D%5Csum_%7Bi%3D1%7D%5E%7BN%7D%20%5Cfrac%7Bresidual_%7Bi%2CQ%7D%7D%7Bbaseline_%7Bi%2CQ%7D%7D "MRD_Q = \frac{1}{N}\sum_{i=1}^{N} \frac{residual_{i,Q}}{baseline_{i,Q}}")
+![MRD_Q = \frac{1}{N}\sum\_{i=1}^{N} \frac{residual\_{i,Q}}{baseline\_{i,Q}}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;MRD_Q%20%3D%20%5Cfrac%7B1%7D%7BN%7D%5Csum_%7Bi%3D1%7D%5E%7BN%7D%20%5Cfrac%7Bresidual_%7Bi%2CQ%7D%7D%7Bbaseline_%7Bi%2CQ%7D%7D "MRD_Q = \frac{1}{N}\sum_{i=1}^{N} \frac{residual_{i,Q}}{baseline_{i,Q}}")
 
-![baseline\_{s(i,Q)} = baseline\_{i,Q} \\times (1 + MRD\_{Q})](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;baseline_%7Bs%28i%2CQ%29%7D%20%3D%20baseline_%7Bi%2CQ%7D%20%5Ctimes%20%281%20%2B%20MRD_%7BQ%7D%29 "baseline_{s(i,Q)} = baseline_{i,Q} \times (1 + MRD_{Q})")
+![baseline\_{s(i,Q)} = baseline\_{i,Q} \times (1 + MRD\_{Q})](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;baseline_%7Bs%28i%2CQ%29%7D%20%3D%20baseline_%7Bi%2CQ%7D%20%5Ctimes%20%281%20%2B%20MRD_%7BQ%7D%29 "baseline_{s(i,Q)} = baseline_{i,Q} \times (1 + MRD_{Q})")
 
-![SD_Q = \\sqrt{\\frac{1}{N-1}\\sum\_{i=1}^{N} (RD\_{i,Q} - MRD_Q)^2}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;SD_Q%20%3D%20%5Csqrt%7B%5Cfrac%7B1%7D%7BN-1%7D%5Csum_%7Bi%3D1%7D%5E%7BN%7D%20%28RD_%7Bi%2CQ%7D%20-%20MRD_Q%29%5E2%7D "SD_Q = \sqrt{\frac{1}{N-1}\sum_{i=1}^{N} (RD_{i,Q} - MRD_Q)^2}")
+![SD_Q = \sqrt{\frac{1}{N-1}\sum\_{i=1}^{N} (RD\_{i,Q} - MRD_Q)^2}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;SD_Q%20%3D%20%5Csqrt%7B%5Cfrac%7B1%7D%7BN-1%7D%5Csum_%7Bi%3D1%7D%5E%7BN%7D%20%28RD_%7Bi%2CQ%7D%20-%20MRD_Q%29%5E2%7D "SD_Q = \sqrt{\frac{1}{N-1}\sum_{i=1}^{N} (RD_{i,Q} - MRD_Q)^2}")
 
-![PI\_{i,Q} = baseline\_{s(i,Q)} \\pm baseline\_{i,Q} \\times 1.64 \\times {SD_Q} ](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;PI_%7Bi%2CQ%7D%20%3D%20baseline_%7Bs%28i%2CQ%29%7D%20%5Cpm%20baseline_%7Bi%2CQ%7D%20%5Ctimes%201.64%20%5Ctimes%20%7BSD_Q%7D%20 "PI_{i,Q} = baseline_{s(i,Q)} \pm baseline_{i,Q} \times 1.64 \times {SD_Q} ")
+![PI\_{i,Q} = baseline\_{s(i,Q)} \pm baseline\_{i,Q} \times 1.64 \times {SD_Q}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;PI_%7Bi%2CQ%7D%20%3D%20baseline_%7Bs%28i%2CQ%29%7D%20%5Cpm%20baseline_%7Bi%2CQ%7D%20%5Ctimes%201.64%20%5Ctimes%20%7BSD_Q%7D "PI_{i,Q} = baseline_{s(i,Q)} \pm baseline_{i,Q} \times 1.64 \times {SD_Q}")
 
 ### Excess deaths
 
@@ -94,7 +94,7 @@ make_death_rates <- function(deaths_df, pop_df, ...) {
     summarize(Deaths = sum(Deaths, na.rm = TRUE)) %>%
     # calculate death rates
     right_join(pop_df, by = c(purrr::map_chr(enquos(...), rlang::as_label), "Year", "Quarter")) %>%
-    filter(YQ != "2022 Q4") %>% # excluding current incomplete quarter
+    filter(YQ != "2023 Q1") %>% # excluding current incomplete quarter
     mutate(Death_rate = Deaths / Population) %>%
     ungroup()
 }
@@ -200,12 +200,12 @@ quarter (**Figure 1A** and **B**) divided by the population size at the
 start of the quarter (**Figure 1C**).
 
 ![**Population size and number of deaths in each age group for the each
-quarter from 2010 Q1 to 2022 Q3.** (A) Deaths shown with fixed y-axis,
+quarter from 2010 Q1 to 2022 Q4.** (A) Deaths shown with fixed y-axis,
 (B) deaths shown with variable y-axes, and (C) population
 size.](README_files/figure-gfm/Figure-1-1.png)
 
 ***Figure 1: Population size and number of deaths in each age group for
-the each quarter from 2010 Q1 to 2022 Q3.** (A) Deaths shown with fixed
+the each quarter from 2010 Q1 to 2022 Q4.** (A) Deaths shown with fixed
 y-axis, (B) deaths shown with variable y-axes, and (C) population size.*
 
 In order to calculate excess deaths-rates during the Covid-19 pandemic,
@@ -216,7 +216,7 @@ reference periods to establish baselines, a 10-year period from 2010 to
 linear regressions.
 
 **Figure 2** shows the quarterly death rates for each group from
-2010-2022 Q3. For most age groups, the 2010-19 baseline describes the
+2010-2022 Q4. For most age groups, the 2010-19 baseline describes the
 death-rate trend very well. For the age group 70-79, however, it looks
 like the decreasing trend from 2010 to 2019 may be flattening towards
 the end of the period, highlighting the importance of baseline choice
@@ -227,7 +227,7 @@ and outliers skewing the 2015-19 baselines. These groups, however, only
 contribute little to the overall excess death rate.
 
 ![**Death rates and baselines.** Quarterly death rates (deaths per 1000
-people) for each age and sex group from 2010 to 2022 Q3 (colored lines).
+people) for each age and sex group from 2010 to 2022 Q4 (colored lines).
 The black lines indicate linear regressions, defining two different
 baselines, based on the years 2010-19 (solid line) and 2015-19 (dashed
 line). The vertical gray line indicate the border between the reference
@@ -235,7 +235,7 @@ period and the period of interest
 (2020-22).](README_files/figure-gfm/Figure-2-1.png)
 
 ***Figure 2: Death rates and linear baselines.** Quarterly death rates
-(deaths per 1000 people) for each age and sex group from 2010 to 2022 Q3
+(deaths per 1000 people) for each age and sex group from 2010 to 2022 Q4
 (colored lines). The black lines indicate linear regressions, defining
 two different baselines, based on the years 2010-19 (solid line) and
 2015-19 (dashed line). The vertical gray line indicate the border
@@ -265,8 +265,8 @@ lines indicate the standard deviation of the relative deviations. The
 gray bands indicate the derived prediction intervals.*
 
 To better interpret how much the death rates during the pandemic deviate
-from the baselines, I established season adjusted baselines and a 90%
-prediction interval (calculated as 1.64 × standard deviation) based on
+from the baselines, I established season adjusted baselines and a 95%
+prediction interval (calculated as 1.96 × standard deviation) based on
 the quartertype (1, 2, 3, or 4)-specific mean deviation from the linear
 baseline and the variation around the mean, respectively (shown for
 2010-19 in **Figure 3**). The season adjusted baseline thus reflects the
@@ -288,7 +288,7 @@ the right.](README_files/figure-gfm/Figure-4-1.png)
 ***Figure 4: Quarterly death rates and season adjusted baselines using
 2010-19 as reference period.** Colored lines indicate the quarterly
 death rates, black lines indicate the season adjusted baselines, and the
-gray band indicate the 90% prediction interval. Sex is indicated on top,
+gray band indicate the 95% prediction interval. Sex is indicated on top,
 age on the right.*
 
 ![**Quarterly death rates and season adjusted baselines using 2015-19 as
@@ -300,12 +300,12 @@ the right.](README_files/figure-gfm/Figure-5-1.png)
 ***Figure 5: Quarterly death rates and season adjusted baselines using
 2015-19 as reference period.** Colored lines indicate the quarterly
 death rates, black lines indicate the season adjusted baselines, and the
-gray band indicate the 90% prediction interval. Sex is indicated on top,
+gray band indicate the 95% prediction interval. Sex is indicated on top,
 age on the right.*
 
 **Figure 6** shows the difference between the observed and expected
 death rates (here called
-![\\Delta](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5CDelta "\Delta")death
+![\Delta](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5CDelta "\Delta")death
 rates), in effect de-trending and de-seasonalizing the death rates and
 baselines. **Figure 7** shows the difference between the observed and
 expected death rates relative to the expected death rates, i.e the
@@ -324,7 +324,7 @@ right.](README_files/figure-gfm/Figure-6-1.png)
 baselines.** (A) Baseline reference period 2010-19, and (B) baseline
 reference period 2015-19. Colored lines indicate the difference between
 the observed death rate and the baseline, black lines indicate the
-baselines, and the gray bands indicate the 90% prediction intervals. Sex
+baselines, and the gray bands indicate the 95% prediction intervals. Sex
 is indicated on top, age on the right.*
 
 ![**De-trended/de-seasonalized quarterly death rates and baselines for
@@ -341,14 +341,14 @@ baselines** (A) Baseline reference period 2010-19, and (B) baseline
 reference period 2015-19. Colored lines show the difference between
 observed and expected death rates relative to the expected death rate,
 black lines indicate the baselines, and the transparent colored bands
-indicate the 90% prediction intervals. Sex is indicated on top, age on
+indicate the 95% prediction intervals. Sex is indicated on top, age on
 the right.*
 
 ![](README_files/figure-gfm/Figure-8-1.png)<!-- -->
 
 ***Figure 8: Z-scores.** Colored lines indicate the quarterly death
 rates, black lines indicate the baselines, and the gray bands indicate
-the 90% prediction intervals. Baseline reference period is indicated on
+the 95% prediction intervals. Baseline reference period is indicated on
 top, age on the right.*
 
 ### Summarizing excess deaths
@@ -361,7 +361,7 @@ method depends strongly on, among other things, how the prediction
 interval is calculated. A broad interval will “normalize” all the
 pre-pandemic variation, whereas a narrower interval will normalize some
 (or none) of the pre-pandemic variation. The interval I have chosen
-(90%, 1.64 times standard deviation) normalizes “most” of the observed
+(95%, 1.96 times standard deviation) normalizes “most” of the observed
 pre-pandemic variation (see **Figure 6**). This is a subjective choice
 that depends on what one aims to measure.
 
@@ -379,7 +379,7 @@ interval in a given quarter. Age groups 0-19 are
 ommitted.](README_files/figure-gfm/Figure-9-1.png)
 
 ***Figure 9: Excess deaths by age and quarter.** Excess deaths are
-defined as deaths exceeding the season adjusted baseline +/- the 90%
+defined as deaths exceeding the season adjusted baseline +/- the 95%
 prediction interval in a given quarter. Age groups 0-19 are ommitted.*
 
 ![**Excess deaths by sex and quarter.** Excess deaths are defined as
@@ -387,32 +387,31 @@ deaths exceeding the season adjusted baseline +/- the `r pi` prediction
 interval in a given quarter.](README_files/figure-gfm/Figure-10-1.png)
 
 ***Figure 10: Excess deaths by sex and quarter.** Excess deaths are
-defined as deaths exceeding the season adjusted baseline +/- the 90%
+defined as deaths exceeding the season adjusted baseline +/- the 95%
 prediction interval in a given quarter.*
 
 ![**Excess deaths by sex and age.** Excess deaths are defined as deaths
 exceeding the season adjusted baseline +/- the `r pi` prediction
 interval in a given quarter. Total excess deaths over the period 2020
-Q1 - 2022 Q3 are summed.](README_files/figure-gfm/Figure-11-1.png)
+Q1 - 2022 Q4 are summed.](README_files/figure-gfm/Figure-11-1.png)
 
 ***Figure 11: Excess deaths by sex and age.** Excess deaths are defined
-as deaths exceeding the season adjusted baseline +/- the 90% prediction
+as deaths exceeding the season adjusted baseline +/- the 95% prediction
 interval in a given quarter. Total excess deaths over the period 2020
-Q1 - 2022 Q3 are summed.*
+Q1 - 2022 Q4 are summed.*
 
 ![**Excess deaths per 100,000 of the total Danish population per year.**
 Excess deaths are defined as deaths exceeding the season adjusted
 baseline +/- the `r pi` prediction interval for a given stratification
-in a given quarter. \*) 2022 is calculated based on Q1, Q2, and Q3 only.
-The population for each year is taken as the mean of the population at
-the start of each quarter.](README_files/figure-gfm/Figure-12-1.png)
+in a given quarter. The population for each year is taken as the mean of
+the population at the start of each
+quarter.](README_files/figure-gfm/Figure-12-1.png)
 
 ***Figure 12: Excess deaths per 100,000 of the total Danish population
 per year.** Excess deaths are defined as deaths exceeding the season
-adjusted baseline +/- the 90% prediction interval for a given
-stratification in a given quarter. \*) 2022 is calculated based on Q1,
-Q2, and Q3 only. The population for each year is taken as the mean of
-the population at the start of each quarter.*
+adjusted baseline +/- the 95% prediction interval for a given
+stratification in a given quarter. The population for each year is taken
+as the mean of the population at the start of each quarter.*
 
 ### Sensitivity to baseline
 
@@ -421,16 +420,16 @@ calculated the total excess death rate using the above method for nine
 different baselines based on different reference periods (**Figure
 13**).
 
-![**Excess deaths for the period 2020 Q1 - 2022 Q3 depending on baseline
+![**Excess deaths for the period 2020 Q1 - 2022 Q4 depending on baseline
 reference period.** Excess deaths are defined as deaths exceeding the
 season adjusted baseline +/- the `r pi` prediction interval in a given
 quarter. Baseline period is indicated on the x-axis. (A) Excess deaths
 per 100,000 of the total Danish population, and (B) excess deaths
 stratified by age.](README_files/figure-gfm/Figure-13-1.png)
 
-***Figure 13: Excess deaths for the period 2020 Q1 - 2022 Q3 depending
+***Figure 13: Excess deaths for the period 2020 Q1 - 2022 Q4 depending
 on baseline reference period.** Excess deaths are defined as deaths
-exceeding the season adjusted baseline +/- the 90% prediction interval
+exceeding the season adjusted baseline +/- the 95% prediction interval
 in a given quarter. Baseline period is indicated on the x-axis. (A)
 Excess deaths per 100,000 of the total Danish population, and (B) excess
 deaths stratified by age.*
@@ -461,7 +460,7 @@ the right.](README_files/figure-gfm/Figure-14-1.png)
 ***Figure 14: De-trended/de-seasonalized death rates and baselines for
 older age groups using different baseline reference periods.** Blue
 lines indicate the quarterly death rates for males, black lines indicate
-the baselines, and the gray bands indicate the 90% prediction intervals,
+the baselines, and the gray bands indicate the 95% prediction intervals,
 and the vertical gray line indicates the border between reference period
 and pandemic period. Age group is indicated on the right.*
 
@@ -475,7 +474,7 @@ by age group and by baseline reference period.
 to baselines for 2020-2022 for different baseline reference periods.**
 Colored lines show the difference between observed and expected death
 rates relative to the expected death rate, black lines indicate the
-baselines, and the transparent colored bands indicate the 90% prediction
+baselines, and the transparent colored bands indicate the 95% prediction
 intervals. Reference period indicated on top, age group is indicated on
 the right.*
 
@@ -500,7 +499,7 @@ the right.](README_files/figure-gfm/Figure-16-1.png)
 baselines using 5-year age bins.** (A) Baseline reference period
 2010-19, and (B) baseline reference period 2015-19. Colored lines
 indicate the quarterly death rates, black lines indicate the baselines,
-and the gray bands indicate the 90% prediction intervals. Sex is
+and the gray bands indicate the 95% prediction intervals. Sex is
 indicted on top, age on the right.*
 
 ![**De-trended/de-seasonalized quarterly death rates and baselines for
@@ -516,22 +515,22 @@ right.](README_files/figure-gfm/Figure-17-1.png)
 to baselines using 5-year bins** (A) Baseline reference period 2010-19,
 and (B) baseline reference period 2015-19. Colored lines indicate the
 quarterly death rates, black lines indicate the baselines, and the gray
-bands indicate the 90% prediction intervals. Sex is indicated on top,
+bands indicate the 95% prediction intervals. Sex is indicated on top,
 age on the right.*
 
 ![](README_files/figure-gfm/Figure-18-1.png)<!-- -->
 
 ***Figure 18: Z-scores using 5-year bins.** Colored lines indicate the
 quarterly death rates, black lines indicate the baselines, and the gray
-bands indicate the 90% prediction intervals. Baseline reference period
+bands indicate the 95% prediction intervals. Baseline reference period
 is indicated on top, age on the right.*
 
 ![](README_files/figure-gfm/Figure-19-1.png)<!-- -->
 
-***Figure 19: Excess deaths by age for the period 2020 Q1 - 2022 Q3
+***Figure 19: Excess deaths by age for the period 2020 Q1 - 2022 Q4
 depending on baseline reference period using 5-year brackets.** Excess
 deaths are defined as deaths exceeding the season adjusted baseline +/-
-the 90% prediction interval in a given quarter. Baseline period is
+the 95% prediction interval in a given quarter. Baseline period is
 indicated on the x-axis. Ages 0-19 are omitted.*
 
 Then, I tried other stratifications, namely 10- and 5-year age bins but
@@ -542,15 +541,15 @@ and this dataset. Other methods or datasets may be more sensitive or
 more robust to baseline choice or stratification.
 
 ![**Excess deaths per 100,000 of the total Danish population for the
-period 2020 Q1 - 2022 Q3 for stratified and non-stratified data
+period 2020 Q1 - 2022 Q4 for stratified and non-stratified data
 depending on baseline reference period.** Excess deaths are defined as
 deaths exceeding the season adjusted baseline +/- the `r pi` prediction
 in a given quarter. Baseline reference period is indicated on the
 x-axis.](README_files/figure-gfm/Figure-20-1.png) ***Figure 20: Excess
 deaths per 100,000 of the total Danish population for the period 2020
-Q1 - 2022 Q3 for stratified and non-stratified data depending on
+Q1 - 2022 Q4 for stratified and non-stratified data depending on
 baseline reference period.** Excess deaths are defined as deaths
-exceeding the season adjusted baseline +/- the 90% prediction in a given
+exceeding the season adjusted baseline +/- the 95% prediction in a given
 quarter. Baseline reference period is indicated on the x-axis.*
 
 To check how much of the differences are explained by calculating excess
@@ -564,7 +563,7 @@ baselines themselves.
 ![](README_files/figure-gfm/Figure-21-1.png)<!-- -->
 
 ***Figure 21: Excess deaths\* per 100,000 of the total Danish population
-for the period 2020 Q1 - 2022 Q3 for stratified and non-stratified data
+for the period 2020 Q1 - 2022 Q4 for stratified and non-stratified data
 depending on baseline reference period.** \*)Excess deaths in this plot
 are defined as the difference between deaths and the season adjusted
 baseline. Baseline reference period is indicated on the x-axis.*
@@ -572,7 +571,7 @@ baseline. Baseline reference period is indicated on the x-axis.*
 ## Discussion and limitations (*WIP*)
 
 In this analysis, I have compared the death rates in Denmark during the
-Covid-19 pandemic (2020 Q1 to 2022 Q3) to pre-pandemic rates by quarter,
+Covid-19 pandemic (2020 Q1 to 2022 Q4) to pre-pandemic rates by quarter,
 age, and sex. I used a simple model that accounts for long-term trends
 and seasonal fluctuations to identify deviations from the baseline. If
 these deviations exceed a prediction interval, they are considered

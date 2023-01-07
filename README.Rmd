@@ -60,12 +60,12 @@ colors_16 <- c(colorspace::lighten("#999999", 0.4), "#999999",
 ```
 
 ```{r set_z}
-z = 1.64
-pi = "90%"
+z = 1.96
+pi = "95%"
 ```
 ## Summary
 
-I calculated age and sex stratified death rates for each quarter during the Covid-19 pandemic in Denmark (2020 Q1 to, so far, 2022 Q3) and compared them to different pre-pandemic baselines. The baselines were established by linear regression followed by adjustment for seasonality. This analysis therefore takes into account both long-term trends, age composition, and seasonality. Excess deaths were defined as deaths exceeding a `r pi` prediction interval around the season adjusted baselines. Using this method, I identified age-groups with noteworthy deviations from the baseline since 2020. I found 96 and 72 excess deaths per 100,000 (~5600 and ~4200 excess deaths, respectively) from 2020 Q1 to 2022 Q3 using the 2010-2019 and 2015-2019 baseline, respectively. Finally, I explored how sensitive the result is to choice of baseline (using 2008-19, 2009-19, 2010-19, 2011-19, 2012-19, 2013-19, 2014-19, 2015-19, and 2016-19 as reference periods) and choice of data stratification (varying age bin size and sex stratification), testing 45 combinations in total. 
+I calculated age and sex stratified death rates for each quarter during the Covid-19 pandemic in Denmark (2020 Q1 to, so far, 2022 Q4) and compared them to different pre-pandemic baselines. The baselines were established by linear regression followed by adjustment for seasonality. This analysis therefore takes into account both long-term trends, age composition, and seasonality. Excess deaths were defined as deaths exceeding a `r pi` prediction interval around the season adjusted baselines. Using this method, I identified age-groups with noteworthy deviations from the baseline since 2020. I found 96 and 72 excess deaths per 100,000 (~5600 and ~4200 excess deaths, respectively) from 2020 Q1 to 2022 Q4 using the 2010-2019 and 2015-2019 baseline, respectively. Finally, I explored how sensitive the result is to choice of baseline (using 2008-19, 2009-19, 2010-19, 2011-19, 2012-19, 2013-19, 2014-19, 2015-19, and 2016-19 as reference periods) and choice of data stratification (varying age bin size and sex stratification), testing 45 combinations in total. 
 
 ## Methods
 
@@ -119,7 +119,7 @@ preds <- make_prediction(death_rates_10, "2010-19", 2010, 2019, z, Age, Sex) %>%
 
 I calculated death rates for each age and sex group using 10-year bins. The death rate is here defined as the number of deaths for a given quarter (**Figure 1A** and **B**) divided by the population size at the start of the quarter (**Figure 1C**). 
 
-```{r Figure-1, echo=FALSE, fig.asp=1, layout="l-page", fig.cap = "**Population size and number of deaths in each age group for the each quarter from 2010 Q1 to 2022 Q3.** (A) Deaths shown with fixed y-axis, (B) deaths shown with variable y-axes, and (C) population size."}
+```{r Figure-1, echo=FALSE, fig.asp=1, layout="l-page", fig.cap = "**Population size and number of deaths in each age group for the each quarter from 2010 Q1 to 2022 Q4.** (A) Deaths shown with fixed y-axis, (B) deaths shown with variable y-axes, and (C) population size."}
 p1 <- death_rates_10 %>%
   filter(Year >= 2010) %>% 
   ggplot() +
@@ -171,14 +171,14 @@ p3 <- death_rates_10 %>%
 p1 / p2 / p3 + plot_annotation(tag_levels = "A") + plot_layout(guides = "collect") & theme(legend.position = "bottom")
 ```
 
-***Figure 1: Population size and number of deaths in each age group for the each quarter from 2010 Q1 to 2022 Q3.** (A) Deaths shown with fixed y-axis, (B) deaths shown with variable y-axes, and (C) population size.*
+***Figure 1: Population size and number of deaths in each age group for the each quarter from 2010 Q1 to 2022 Q4.** (A) Deaths shown with fixed y-axis, (B) deaths shown with variable y-axes, and (C) population size.*
 
 In order to calculate excess deaths-rates during the Covid-19 pandemic, a baseline defining the normal death rate must be established against which the death rates during 2020-22 is compared. I used two different reference periods to establish baselines, a 10-year period from 2010 to 2019 and 5-year period from 2015 to 2019. To establish baselines, I used linear regressions. 
 
-**Figure 2**  shows the quarterly death rates for each group from 2010-2022 Q3. For most age groups, the 2010-19 baseline describes the death-rate trend very well. For the age group 70-79, however, it looks like the decreasing trend from 2010 to 2019 may be flattening towards the end of the period, highlighting the importance of baseline choice (as shown in **Figure 11** the choice for this age group has a large impact). For  males in  age-groups 10-19 and 30-39, the two baselines differ greatly, which may be caused by a combination of large variation and outliers skewing the 2015-19 baselines. These groups, however, only contribute little to the overall excess death rate.
+**Figure 2**  shows the quarterly death rates for each group from 2010-2022 Q4. For most age groups, the 2010-19 baseline describes the death-rate trend very well. For the age group 70-79, however, it looks like the decreasing trend from 2010 to 2019 may be flattening towards the end of the period, highlighting the importance of baseline choice (as shown in **Figure 11** the choice for this age group has a large impact). For  males in  age-groups 10-19 and 30-39, the two baselines differ greatly, which may be caused by a combination of large variation and outliers skewing the 2015-19 baselines. These groups, however, only contribute little to the overall excess death rate.
 
 
-```{r Figure-2, echo=FALSE, fig.asp=1.3, layout="l-page", fig.cap = "**Death rates and baselines.** Quarterly death rates (deaths per 1000 people) for each age and sex group from 2010 to 2022 Q3 (colored lines). The black lines indicate linear regressions, defining two different baselines, based on the years 2010-19 (solid line) and 2015-19 (dashed line). The vertical gray line indicate the border between the reference period and the period of interest (2020-22)."}
+```{r Figure-2, echo=FALSE, fig.asp=1.3, layout="l-page", fig.cap = "**Death rates and baselines.** Quarterly death rates (deaths per 1000 people) for each age and sex group from 2010 to 2022 Q4 (colored lines). The black lines indicate linear regressions, defining two different baselines, based on the years 2010-19 (solid line) and 2015-19 (dashed line). The vertical gray line indicate the border between the reference period and the period of interest (2020-22)."}
 preds %>%
   unnest(predict) %>%
   filter(
@@ -207,7 +207,7 @@ preds %>%
   )
 ```
 
-***Figure 2: Death rates and linear baselines.** Quarterly death rates (deaths per 1000 people) for each age and sex group from 2010 to 2022 Q3 (colored lines). The black lines indicate linear regressions, defining two different baselines, based on the years 2010-19 (solid line) and 2015-19 (dashed line). The vertical gray line indicate the border between the reference period and the period of interest (2020-22).*
+***Figure 2: Death rates and linear baselines.** Quarterly death rates (deaths per 1000 people) for each age and sex group from 2010 to 2022 Q4 (colored lines). The black lines indicate linear regressions, defining two different baselines, based on the years 2010-19 (solid line) and 2015-19 (dashed line). The vertical gray line indicate the border between the reference period and the period of interest (2020-22).*
 
 
 ### Taking seasonality into account
@@ -497,11 +497,11 @@ preds %>%
   select(Age, `Base 2010-19: Female`, `Base 2010-19: Male`, everything()) %>%
   ungroup() %>%
   add_row(Age = "All", summarise(., across(where(is.numeric), sum))) %>%
-  knitr::kable(caption = "Table 1: Excess deaths for each age group, sex and baseline for the period 2020 Q1 - 2022 Q3. Rounded to whole numbers.")
+  knitr::kable(caption = "Table 1: Excess deaths for each age group, sex and baseline for the period 2020 Q1 - 2022 Q4. Rounded to whole numbers.")
 ```
 
 
-```{r Figure-11, echo=FALSE, fig.asp=0.55, layout="l-body-outset", fig.cap = "**Excess deaths by sex and age.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval in a given quarter. Total excess deaths over the period 2020 Q1 - 2022 Q3 are summed. "}
+```{r Figure-11, echo=FALSE, fig.asp=0.55, layout="l-body-outset", fig.cap = "**Excess deaths by sex and age.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval in a given quarter. Total excess deaths over the period 2020 Q1 - 2022 Q4 are summed. "}
 preds %>%
   unnest(c(predict, excess)) %>%
   filter(Year >= 2020) %>%
@@ -523,9 +523,9 @@ preds %>%
   )
 ```
 
-***Figure 11: Excess deaths by sex and age.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval in a given quarter. Total excess deaths over the period 2020 Q1 - 2022 Q3 are summed.*
+***Figure 11: Excess deaths by sex and age.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval in a given quarter. Total excess deaths over the period 2020 Q1 - 2022 Q4 are summed.*
 
-```{r Figure-12, echo=FALSE, fig.asp=0.5, fig.cap = "**Excess deaths per 100,000 of the total Danish population per year.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval for a given stratification in a given quarter. *) 2022 is calculated based on Q1, Q2, and Q3 only. The population for each year is taken as the mean of the population at the start of each quarter."}
+```{r Figure-12, echo=FALSE, fig.asp=0.5, fig.cap = "**Excess deaths per 100,000 of the total Danish population per year.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval for a given stratification in a given quarter. The population for each year is taken as the mean of the population at the start of each quarter."}
 preds %>%
   unnest(c(predict, excess)) %>%
   left_join(pop_total, by = "YQ") %>%
@@ -535,11 +535,11 @@ preds %>%
     excess_deaths = sum(excess_abs),
     Pop_total = mean(Pop_total, na.rm = TRUE)
   ) %>%
-  mutate(Year = ifelse(Year == 2022, "2022*", as.character(Year))) %>%
+  #mutate(Year = ifelse(Year == 2022, "2022*", as.character(Year))) %>%
   ggplot() +
   geom_bar(stat = "identity", position = "stack", aes(Year, excess_deaths / Pop_total * 100000), width = 0.9) +
   scale_y_continuous(limits = c(NA, NA), labels = scales::number) +
-  scale_x_discrete(breaks = c("2020", "2021", "2022*")) +
+ # scale_x_discrete(breaks = c("2020", "2021", "2022")) +
   labs(
     y = "Excess deaths per 100,000"
   ) +
@@ -554,7 +554,7 @@ preds %>%
   )
 ```
 
-***Figure 12: Excess deaths per 100,000 of the total Danish population per year.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval for a given stratification in a given quarter. \*) 2022 is calculated based on Q1, Q2, and Q3 only. The population for each year is taken as the mean of the population at the start of each quarter.*
+***Figure 12: Excess deaths per 100,000 of the total Danish population per year.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval for a given stratification in a given quarter. The population for each year is taken as the mean of the population at the start of each quarter.*
 
 
 
@@ -569,7 +569,7 @@ To explore how sensitive the result is  to choice of baseline, I have calculated
 preds_more <- make_more_preds(death_rates_10, z, Age, Sex)
 ```
 
-```{r Figure-13, echo=FALSE, layout = "l-body_outset", fig.asp=1.1, fig.cap = "**Excess deaths for the period 2020 Q1 - 2022 Q3 depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval in a given quarter. Baseline period is indicated on the x-axis. (A) Excess deaths per 100,000 of the total Danish population, and (B) excess deaths stratified by age."}
+```{r Figure-13, echo=FALSE, layout = "l-body_outset", fig.asp=1.1, fig.cap = "**Excess deaths for the period 2020 Q1 - 2022 Q4 depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval in a given quarter. Baseline period is indicated on the x-axis. (A) Excess deaths per 100,000 of the total Danish population, and (B) excess deaths stratified by age."}
 p1 <- preds_more %>%
   unnest(c(predict, excess)) %>%
   left_join(pop_total, by = "YQ") %>%
@@ -620,7 +620,7 @@ p2 <- preds_more %>%
  p1 / p2 + plot_annotation(tag_levels = "A")
 ```
 
-***Figure 13: Excess deaths for the period 2020 Q1 - 2022 Q3 depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval in a given quarter. Baseline period is indicated on the x-axis. (A) Excess deaths per 100,000 of the total Danish population, and (B) excess deaths stratified by age.*
+***Figure 13: Excess deaths for the period 2020 Q1 - 2022 Q4 depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval in a given quarter. Baseline period is indicated on the x-axis. (A) Excess deaths per 100,000 of the total Danish population, and (B) excess deaths stratified by age.*
 
 As shown in **Figure 13**, the choice of reference period for the baseline has a significant impact on the number of excess deaths. Most of the difference between baselines is due to the 70-79 age group, with the exception of the low rate of excess deaths found using the 2014-19 baseline, which is mainly influenced by the 80-89 age group. **Figure 14** shows the de-trended and de-seasonalized death rates and baselines for these two age groups (only males are shown for illustration). The large impact of the reference period on the excess deaths in the 70-79 age group appears to be due to the deviation of the long-term trend from a linear fit (as mentioned above), while the low number of excess deaths in the 80-89 age group using the 2014-19 baseline is due to a high mortality year (2013, mainly Q1) followed immediately by a low mortality year (2014).
 
@@ -824,7 +824,7 @@ preds_5 %>%
 
 ```
 
-***Figure 19: Excess deaths by age for the period 2020 Q1 - 2022 Q3 depending on baseline reference period using 5-year brackets.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval in a given quarter. Baseline period is indicated on the x-axis. Ages 0-19 are omitted.*
+***Figure 19: Excess deaths by age for the period 2020 Q1 - 2022 Q4 depending on baseline reference period using 5-year brackets.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction interval in a given quarter. Baseline period is indicated on the x-axis. Ages 0-19 are omitted.*
 
 Then, I tried other stratifications, namely 10- and 5-year age bins but without stratifying for sex, and a completely non-stratified dataset. The excess death rates for all baselines and stratifications are shown in **Figure 20**. This sensitivity analysis is specific for this method and this dataset. Other methods or datasets may be more sensitive or more robust to baseline choice or stratification.
 
@@ -882,7 +882,7 @@ all_preds <- preds_no_strata %>%
     )
 ```
 
-```{r Figure-20, echo=FALSE,  layout = "l-body_outset", fig.asp=0.5, fig.cap = "**Excess deaths per 100,000 of the total Danish population for the period 2020 Q1 - 2022 Q3 for stratified and non-stratified data depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction in a given quarter. Baseline reference period is indicated on the x-axis."}
+```{r Figure-20, echo=FALSE,  layout = "l-body_outset", fig.asp=0.5, fig.cap = "**Excess deaths per 100,000 of the total Danish population for the period 2020 Q1 - 2022 Q4 for stratified and non-stratified data depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction in a given quarter. Baseline reference period is indicated on the x-axis."}
 all_preds %>% 
   ggplot() +
   geom_bar(stat = "identity", position = "dodge", aes(prediction, excess_abs / Pop_total * 100000, fill = stratification), width = 0.9) +
@@ -902,7 +902,7 @@ all_preds %>%
     legend.title = element_blank()
   )
 ```
-***Figure 20: Excess deaths per 100,000 of the total Danish population for the period 2020 Q1 - 2022 Q3 for stratified and non-stratified data depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction in a given quarter. Baseline reference period is indicated on the x-axis.*
+***Figure 20: Excess deaths per 100,000 of the total Danish population for the period 2020 Q1 - 2022 Q4 for stratified and non-stratified data depending on baseline reference period.** Excess deaths are defined as deaths exceeding the season adjusted baseline +/- the `r pi` prediction in a given quarter. Baseline reference period is indicated on the x-axis.*
 
 To check how much of the differences are explained by calculating excess deaths as those deaths exceeding an interval, I also calculated deaths compared to the season adjusted baseline itself (**Figure 21**), which equals setting the prediction interval to 0. This results in a bit less impact of stratification, so the impact of stratification can be explained both by the width of the prediction intervals and the baselines themselves.
 
@@ -961,11 +961,11 @@ all_preds %>%
   )
 ```
 
-***Figure 21: Excess deaths\* per 100,000 of the total Danish population for the period 2020 Q1 - 2022 Q3 for stratified and non-stratified data depending on baseline reference period.** \*)Excess deaths in this plot are defined as the difference between  deaths and the season adjusted baseline. Baseline reference period is indicated on the x-axis.*
+***Figure 21: Excess deaths\* per 100,000 of the total Danish population for the period 2020 Q1 - 2022 Q4 for stratified and non-stratified data depending on baseline reference period.** \*)Excess deaths in this plot are defined as the difference between  deaths and the season adjusted baseline. Baseline reference period is indicated on the x-axis.*
 
 ## Discussion and limitations (*WIP*)
 
-In this analysis, I have compared the death rates in Denmark during the Covid-19 pandemic (2020 Q1 to 2022 Q3) to pre-pandemic rates by quarter, age, and sex. I used a simple model that accounts for long-term trends and seasonal fluctuations to identify deviations from the baseline. If these deviations exceed a prediction interval, they are considered excess deaths. The prediction interval is determined by the pre-pandemic variability around the baseline. The width of the interval is chosen to be close  to the range of pre-pandemic variability, meaning that the majority of the deviations around the baseline during the reference period are considered "normal".
+In this analysis, I have compared the death rates in Denmark during the Covid-19 pandemic (2020 Q1 to 2022 Q4) to pre-pandemic rates by quarter, age, and sex. I used a simple model that accounts for long-term trends and seasonal fluctuations to identify deviations from the baseline. If these deviations exceed a prediction interval, they are considered excess deaths. The prediction interval is determined by the pre-pandemic variability around the baseline. The width of the interval is chosen to be close  to the range of pre-pandemic variability, meaning that the majority of the deviations around the baseline during the reference period are considered "normal".
 
 The analysis identify age groups with deviating quarterly death rates since 2020. Most of the excess death is in the 70-79 yo and 80-89 yo age groups, but other age groups display deviations and excess deaths that are also noteworthy. 
 
