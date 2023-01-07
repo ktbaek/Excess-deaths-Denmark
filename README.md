@@ -13,12 +13,12 @@ This analysis therefore takes into account both long-term trends, age
 composition, and seasonality. Excess deaths were defined as deaths
 exceeding a 95% prediction interval around the season adjusted
 baselines. Using this method, I identified age-groups with noteworthy
-deviations from the baseline since 2020. I found 96 and 72 excess deaths
-per 100,000 (\~5600 and \~4200 excess deaths, respectively) from 2020 Q1
-to 2022 Q4 using the 2010-2019 and 2015-2019 baseline, respectively.
-Finally, I explored how sensitive the result is to choice of baseline
-(using 2008-19, 2009-19, 2010-19, 2011-19, 2012-19, 2013-19, 2014-19,
-2015-19, and 2016-19 as reference periods) and choice of data
+deviations from the baseline since 2020. I found 105 and 85 excess
+deaths per 100,000 (\~6200 and \~5000 excess deaths, respectively) from
+2020 Q1 to 2022 Q4 using the 2010-2019 and 2015-2019 baseline,
+respectively. Finally, I explored how sensitive the result is to choice
+of baseline (using 2008-19, 2009-19, 2010-19, 2011-19, 2012-19, 2013-19,
+2014-19, 2015-19, and 2016-19 as reference periods) and choice of data
 stratification (varying age bin size and sex stratification), testing 45
 combinations in total.
 
@@ -361,9 +361,9 @@ method depends strongly on, among other things, how the prediction
 interval is calculated. A broad interval will “normalize” all the
 pre-pandemic variation, whereas a narrower interval will normalize some
 (or none) of the pre-pandemic variation. The interval I have chosen
-(95%, 1.96 times standard deviation) normalizes “most” of the observed
-pre-pandemic variation (see **Figure 6**). This is a subjective choice
-that depends on what one aims to measure.
+(95%, 1.96 times standard deviation) normalizes almost all of the
+observed pre-pandemic variation (see **Figure 6**). This is a subjective
+and somewhat arbitrary choice that depends on what one aims to measure.
 
 Excess deaths were back-calculated from the excess death rates using the
 age and sex stratified quarterly population numbers.
